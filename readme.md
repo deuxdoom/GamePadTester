@@ -34,9 +34,8 @@
 ---
 
 ## 📥 다운로드
-- 가장 쉬운 방법: **[Releases 페이지](https://github.com/deuxdoom/GamePadTester/releases)**로 이동합니다.
-- 최신 버전(예: `v1.0.0`) 선택 → **Assets**에서 **Windows 실행 파일 또는 ZIP** 다운로드  
-  예) GamePadTester_xxx.zip`
+- [Releases 페이지](https://github.com/deuxdoom/GamePadTester/releases)로 이동합니다.
+- 최신 버전(예: `v1.0.0`) 선택 → **Assets**에서 **ZIP파일** 다운로드 예) GamePadTester_xxx.zip`
 - ZIP을 받은 경우 **압축 해제** 후 `GamePadTester.exe` 실행
 - SmartScreen이 뜨면 **`추가 정보` → `실행`** 선택 (자세한 내용은 아래 *주의사항*)
 - 권장: `Program Files`보다 **사용자 폴더(바탕화면/문서 등)** 에서 실행
