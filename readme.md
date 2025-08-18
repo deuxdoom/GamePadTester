@@ -11,7 +11,7 @@
   <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/total?logo=github" alt="downloads"/></a>
 </p>
 
-> 윈도우용 XInput 게임패드 테스터: 폴링레이트 측정, D-Pad/ABXY 열 정렬 버튼 UI, 듀얼 스틱 원형도, 진동 테스트, TXT 내보내기, (선택) 장치명 표시.
+> 윈도우용 XInput 게임패드 테스터: 폴링레이트 측정, D-Pad/ABXY/LB RB 등 버튼 테스트, 스틱 원형도 Axis값 측정, 진동 테스트
 
 ---
 
