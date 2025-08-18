@@ -1,13 +1,6 @@
 # -*- coding: utf-8 -*-
 # GamePadTester
-# Version: 1.5.1
-"""
-XInput 기반 게임 컨트롤러 테스터 (프리미엄 UI/UX 리디자인)
-- v23: 컨트롤러 연결상태 실시간 반영, 측정 버튼 연동, 순서 문제 설명 및 UI 개선
-- 기능은 원본 코드를 계승, UI/UX 및 코드 구조를 완전히 재설계
-- 다크 테마 기반의 현대적이고 직관적인 시각화에 중점
-- 의존성: PySide6
-"""
+
 from __future__ import annotations
 import sys
 import os
@@ -15,13 +8,18 @@ import time
 import threading
 import math
 import base64
+import webbrowser
+import atexit
+import tempfile
+import json
 from collections import deque
 from statistics import mean, median, stdev
 from typing import Deque, List, Optional, Tuple
 from datetime import datetime
+from urllib import request as url_request
 
 # ----- 버전 정보 -----
-VERSION = "1.5.1"
+VERSION = "1.0.0"
 
 # ----- Qt (PySide6) -----
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QTimer, QPointF, QRectF, QSize
@@ -30,7 +28,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QComboBox,
-    QGroupBox, QFileDialog, QFrame, QSlider, QSizePolicy, QCheckBox, QMessageBox
+    QGroupBox, QFileDialog, QFrame, QSlider, QSizePolicy, QCheckBox, QMessageBox, QDialog
 )
 
 # ----- Windows API (ctypes) -----
@@ -132,34 +130,52 @@ class PollingThread(QThread):
         else: stability = 100.0
         return {"samples": len(ms), "mean_ms": mu, "median_ms": median(ms), "mean_hz": 1000.0/mu if mu > 0 else 0, "median_hz": 1000.0/median(ms) if median(ms) > 0 else 0, "stability_pct": stability}
 
+class UpdateCheckThread(QThread):
+    updateAvailable = Signal(str)
+    def run(self):
+        try:
+            req = url_request.Request("https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest", headers={'Accept': 'application/vnd.github.v3+json'})
+            with url_request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                latest_version_tag = data['tag_name']
+                latest_version = latest_version_tag.lstrip('v')
+                if tuple(map(int, latest_version.split('.'))) > tuple(map(int, VERSION.split('.'))):
+                    self.updateAvailable.emit(latest_version)
+        except Exception as e:
+            print(f"업데이트 확인 실패: {e}")
+
 STYLESHEET = """
 QWidget { color: #e0e0e0; font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; font-size: 10pt; }
-MainWindow { background-color: #282c34; }
-QGroupBox { font-size: 11pt; font-weight: bold; border: 1px solid #404552; border-radius: 8px; margin-top: 10px; }
-QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 10px; left: 10px; color: #9299b1; }
+MainWindow, QDialog { background-color: #2a2a3e; }
+QGroupBox { font-size: 11pt; font-weight: bold; border: 1px solid #4a4a6a; border-radius: 8px; margin-top: 10px; }
+QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; padding: 0 10px; left: 10px; color: #a0a0c0; }
 QLabel#TitleLabel { font-size: 16pt; font-weight: bold; color: #ffffff; }
-QLabel#StatusLabel, QLabel#DeviceListLabel { font-size: 9pt; color: #9299b1; }
+QLabel#StatusLabel { font-size: 9pt; color: #a0a0c0; }
 QLabel#AxisValueLabel { font-size: 11pt; font-weight: bold; color: #ffffff; }
-QLabel#AxisTitleLabel { font-size: 8pt; color: #9299b1; }
-QPushButton { background-color: #404552; border: 1px solid #525968; border-radius: 6px; padding: 8px 12px; font-weight: bold; min-width: 80px; }
-QPushButton:hover { background-color: #525968; }
-QPushButton:pressed { background-color: #3a3f4a; }
-QPushButton:disabled { background-color: #3a3f4a; color: #8a8a8a; }
-QPushButton#StartButton { background-color: #528bff; color: white; }
-QPushButton#StartButton:hover { background-color: #679eff; }
+QLabel#AxisTitleLabel { font-size: 8pt; color: #a0a0c0; }
+QPushButton { background-color: #4a4a6a; border: 1px solid #6a6a8a; border-radius: 6px; padding: 8px 12px; font-weight: bold; min-width: 80px; }
+QPushButton:hover { background-color: #5a5a7a; }
+QPushButton:pressed { background-color: #3a3a5a; }
+QPushButton:disabled { background-color: #3a3a5a; color: #8a8a8a; }
+QPushButton#StartButton { background-color: #8a2be2; color: white; }
+QPushButton#StartButton:hover { background-color: #9a4be2; }
 QPushButton#StopButton { background-color: #ff5252; color: white; }
 QPushButton#StopButton:hover { background-color: #ff6d6d; }
-QComboBox, QCheckBox { background-color: #3a3f4a; border: 1px solid #525968; border-radius: 4px; padding: 6px; }
+QPushButton#VibButton { background-color: #ff8c00; color: white; }
+QPushButton#VibButton:hover { background-color: #ffa500; }
+QPushButton#AboutButton { background-color: #28a745; color: white; }
+QPushButton#AboutButton:hover { background-color: #2ebf4f; }
+QComboBox, QCheckBox { background-color: #3a3a5a; border: 1px solid #5a5a7a; border-radius: 4px; padding: 6px; }
 QCheckBox::indicator { width: 16px; height: 16px; }
 QComboBox::drop-down { border: none; }
-QSlider::groove:horizontal { height: 4px; background: #3a3f4a; border-radius: 2px; }
-QSlider::handle:horizontal { width: 16px; height: 16px; margin: -6px 0; border-radius: 8px; background: #528bff; }
+QSlider::groove:horizontal { height: 4px; background: #3a3a5a; border-radius: 2px; }
+QSlider::handle:horizontal { width: 16px; height: 16px; margin: -6px 0; border-radius: 8px; background: #8a2be2; }
 """
 
 class StatWidget(QWidget):
     def __init__(self, title: str, unit: str):
         super().__init__(); self.title_label = QLabel(title); self.value_label = QLabel("-"); self.unit_label = QLabel(unit)
-        self.title_label.setStyleSheet("color: #9299b1; font-size: 9pt;"); self.value_label.setStyleSheet("color: white; font-size: 18pt; font-weight: bold;"); self.unit_label.setStyleSheet("color: #9299b1; font-size: 12pt; margin-bottom: 2px;")
+        self.title_label.setStyleSheet("color: #a0a0c0; font-size: 9pt;"); self.value_label.setStyleSheet("color: white; font-size: 18pt; font-weight: bold;"); self.unit_label.setStyleSheet("color: #a0a0c0; font-size: 12pt; margin-bottom: 2px;")
         layout = QHBoxLayout(self); layout.setContentsMargins(0,0,0,0); layout.addWidget(self.title_label, 1, Qt.AlignBottom); layout.addSpacing(10); layout.addWidget(self.value_label, 0, Qt.AlignBottom | Qt.AlignRight); layout.addSpacing(5); layout.addWidget(self.unit_label, 0, Qt.AlignBottom | Qt.AlignLeft)
     def set_value(self, value: Optional[float], fmt: str = "{:.2f}"): self.value_label.setText(fmt.format(value) if value is not None else "-")
 
@@ -171,7 +187,7 @@ class AnalogStickWidget(QWidget):
         if self.is_pressed != pressed: self.is_pressed = pressed; self.update()
     def paintEvent(self, event):
         painter = QPainter(self); painter.setRenderHint(QPainter.Antialiasing); size = min(self.width(), self.height()); center = QPointF(self.width() / 2, self.height() / 2); radius = size / 2 * 0.9
-        border_color = QColor("#528bff") if self.is_pressed else QColor("#525968"); painter.setPen(QPen(border_color, 4)); painter.setBrush(Qt.NoBrush); painter.drawEllipse(center, radius, radius)
+        border_color = QColor("#8a2be2") if self.is_pressed else QColor("#5a5a7a"); painter.setPen(QPen(border_color, 4)); painter.setBrush(Qt.NoBrush); painter.drawEllipse(center, radius, radius)
         handle_pos = QPointF(center.x() + self.x * radius * 0.7, center.y() + self.y * radius * 0.7); painter.setBrush(QColor("#e0e0e0")); painter.setPen(Qt.NoPen); painter.drawEllipse(handle_pos, radius * 0.4, radius * 0.4)
 
 class TriggerWidget(QWidget):
@@ -180,8 +196,8 @@ class TriggerWidget(QWidget):
     def set_value(self, value: float): self.value = value; self.update()
     def paintEvent(self, event):
         painter = QPainter(self); painter.setRenderHint(QPainter.Antialiasing); rect = self.rect().adjusted(5, 20, -5, -5)
-        painter.setPen(Qt.NoPen); painter.setBrush(QColor("#3a3f4a")); painter.drawRoundedRect(rect, 5, 5)
-        fill_height = rect.height() * self.value; fill_rect = QRectF(rect.x(), rect.y() + rect.height() - fill_height, rect.width(), fill_height); painter.setBrush(QColor("#528bff")); painter.drawRoundedRect(fill_rect, 5, 5)
+        painter.setPen(Qt.NoPen); painter.setBrush(QColor("#3a3a5a")); painter.drawRoundedRect(rect, 5, 5)
+        fill_height = rect.height() * self.value; fill_rect = QRectF(rect.x(), rect.y() + rect.height() - fill_height, rect.width(), fill_height); painter.setBrush(QColor("#8a2be2")); painter.drawRoundedRect(fill_rect, 5, 5)
         painter.setPen(QColor("#e0e0e0")); painter.drawText(self.rect(), Qt.AlignHCenter | Qt.AlignTop, self.title)
 
 class GamepadWidget(QWidget):
@@ -195,7 +211,7 @@ class GamepadWidget(QWidget):
         self.trigger_L.set_value(gp_state.bLeftTrigger / 255.0); self.trigger_R.set_value(gp_state.bRightTrigger / 255.0); self.update()
     def paintEvent(self, event):
         painter = QPainter(self); painter.setRenderHint(QPainter.Antialiasing); c, w, h = self.rect().center(), self.width(), self.height()
-        C_OUTLINE = QColor(82, 139, 255, 60); C_BG = QColor("#2c313a"); C_BTN_OFF = QColor("#404552"); C_BTN_ON = QColor("#528bff"); C_TEXT = QColor("#e0e0e0")
+        C_OUTLINE = QColor(138, 43, 226, 60); C_BG = QColor("#3a3a5a"); C_BTN_OFF = QColor("#4a4a6a"); C_BTN_ON = QColor("#8a2be2"); C_TEXT = QColor("#e0e0e0")
         path = QPainterPath(); path.moveTo(w*0.3, h*0.05); path.cubicTo(w*0.1, h*0.05, w*0.05, h*0.3, w*0.05, h*0.5); path.cubicTo(w*0.05, h*0.8, w*0.2, h*0.95, w*0.35, h*0.95); path.lineTo(w*0.65, h*0.95); path.cubicTo(w*0.8, h*0.95, w*0.95, h*0.8, w*0.95, h*0.5); path.cubicTo(w*0.95, h*0.3, w*0.9, h*0.05, w*0.7, h*0.05); path.closeSubpath()
         painter.setPen(QPen(C_OUTLINE, 3)); painter.setBrush(C_BG); painter.drawPath(path)
         def draw_button(x_off, y_off, name, text=""):
@@ -213,54 +229,35 @@ class GamepadWidget(QWidget):
         rb_path=QPainterPath(); rb_path.addRoundedRect(w*0.65, y_shoulder, w*0.2, 25, 8, 8); painter.setBrush(C_BTN_ON if self.button_states.get("RB") else C_BTN_OFF); painter.drawPath(rb_path)
         painter.setPen(C_TEXT); painter.drawText(lb_path.boundingRect(), Qt.AlignCenter, "LB"); painter.drawText(rb_path.boundingRect(), Qt.AlignCenter, "RB")
 
-class CircularityWidget(QWidget):
+class AxisDisplayWidget(QWidget):
     def __init__(self, title: str):
-        super().__init__(); self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding); self.setMinimumWidth(220)
+        super().__init__()
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding); self.setMinimumWidth(220)
         self.title_label = QLabel(title); self.title_label.setAlignment(Qt.AlignCenter)
-        self.graph = CircularityGraph(); self.graph.setMinimumSize(180, 180)
         self.axis0_title = QLabel("AXIS 0"); self.axis0_title.setObjectName("AxisTitleLabel"); self.axis0_title.setAlignment(Qt.AlignCenter); self.axis0_value = QLabel("-.-----"); self.axis0_value.setObjectName("AxisValueLabel"); self.axis0_value.setAlignment(Qt.AlignCenter)
         self.axis1_title = QLabel("AXIS 1"); self.axis1_title.setObjectName("AxisTitleLabel"); self.axis1_title.setAlignment(Qt.AlignCenter); self.axis1_value = QLabel("-.-----"); self.axis1_value.setObjectName("AxisValueLabel"); self.axis1_value.setAlignment(Qt.AlignCenter)
         layout = QGridLayout(self); layout.setSpacing(2); layout.setContentsMargins(0, 5, 0, 5)
-        layout.addWidget(self.title_label, 0, 0, 1, 2); layout.addWidget(self.graph, 1, 0, 1, 2); layout.addWidget(self.axis0_title, 2, 0); layout.addWidget(self.axis1_title, 2, 1); layout.addWidget(self.axis0_value, 3, 0); layout.addWidget(self.axis1_value, 3, 1)
+        layout.addWidget(self.title_label, 0, 0, 1, 2); layout.addWidget(self.axis0_title, 2, 0); layout.addWidget(self.axis1_title, 2, 1); layout.addWidget(self.axis0_value, 3, 0); layout.addWidget(self.axis1_value, 3, 1); layout.setRowStretch(1, 1)
         self.reset()
     def reset(self):
-        self.graph.reset(); self.axis0_value.setText(f"{0.0:+.5f}"); self.axis1_value.setText(f"{0.0:+.5f}")
-    def add_sample(self, x: float, y: float):
-        self.graph.add_sample(x, y); self.axis0_value.setText(f"{x:+.5f}"); self.axis1_value.setText(f"{y:+.5f}")
-
-class CircularityGraph(QWidget):
-    def __init__(self, sectors: int = 24):
-        super().__init__(); self.sectors = max(8, sectors); self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding); self.reset()
-    def reset(self): self.radius_sums=[0.0]*self.sectors; self.counts=[0]*self.sectors; self.radii_all=deque(maxlen=5000); self.avg_error_pct=0.0; self.update()
-    def add_sample(self, x: float, y: float):
-        r = math.sqrt(x*x + y*y)
-        self.radii_all.append(r); ang = math.atan2(y, x); ang = ang + 2*math.pi if ang<0 else ang; idx = int((ang/(2*math.pi))*self.sectors)%self.sectors; self.radius_sums[idx]+=r; self.counts[idx]+=1
-        if len(self.radii_all) >= 20:
-            avg_r = mean(self.radii_all)
-            if avg_r > 1e-6: avg_deviation = mean([abs(val - avg_r) for val in self.radii_all]); self.avg_error_pct = (avg_deviation / avg_r) * 100.0
-        self.update()
-    def paintEvent(self, e):
-        painter=QPainter(self); painter.setRenderHint(QPainter.Antialiasing); w,h,cx,cy=self.width(),self.height(),self.width()//2,self.height()//2; R=int(min(w,h)*0.45)
-        painter.setPen(QPen(QColor("#404552"), 2)); painter.setBrush(Qt.NoBrush); painter.drawEllipse(cx-R,cy-R,2*R,2*R)
-        for i in range(self.sectors):
-            c=self.counts[i]; val=(self.radius_sums[i]/c) if c else 0.0; rlen=int(max(0.0,min(1.0,val))*R); ang=(i+0.5)*(2*math.pi/self.sectors); x2=cx+int(math.cos(ang)*rlen); y2=cy+int(math.sin(ang)*rlen)
-            grad=QLinearGradient(cx,cy,x2,y2); grad.setColorAt(0,QColor(82,139,255,80)); grad.setColorAt(1,QColor(82,139,255,255)); painter.setPen(QPen(QBrush(grad),3)); painter.drawLine(cx,cy,x2,y2)
-        painter.setBrush(QColor("#282c34")); painter.setPen(Qt.NoPen); painter.drawEllipse(cx-4,cy-4,8,8)
-        painter.setPen(QColor("#e0e0e0")); painter.setFont(QFont("Segoe UI",10)); txt=f"Avg Error: {self.avg_error_pct:.1f}%"; tw=painter.fontMetrics().horizontalAdvance(txt); painter.drawText(int(cx-tw/2), int(cy+R+15), txt)
+        self.axis0_value.setText(f"{0.0:+.5f}"); self.axis1_value.setText(f"{0.0:+.5f}")
+    def update_values(self, x: float, y: float):
+        self.axis0_value.setText(f"{x:+.5f}"); self.axis1_value.setText(f"{y:+.5f}")
 
 class MainWindow(QWidget):
     def __init__(self):
-        super().__init__(); self.setWindowTitle(f"게임패드 테스터 (GamePad Tester) v{VERSION}"); self.setObjectName("MainWindow"); self.setFixedSize(1300, 720)
+        super().__init__(); self.setWindowTitle(f"게임패드 테스트 v{VERSION}"); self.setObjectName("MainWindow"); self.setFixedSize(1300, 720)
         self._thread: Optional[PollingThread] = None; self._xi = XInput(); self._dev_idx = 0; self._vib_on = False; self.is_measuring = False
-        self.last_connection_state = [False, False, False, False] # 실시간 연결 확인용
+        self.last_connection_state = [False, False, False, False]
         root_layout = QHBoxLayout(self); root_layout.setContentsMargins(20, 20, 20, 20); root_layout.setSpacing(20)
         left_panel = self._create_left_panel(); center_panel = self._create_center_panel(); right_panel = self._create_right_panel()
         root_layout.addWidget(left_panel); root_layout.addWidget(center_panel, 1); root_layout.addWidget(right_panel)
         self._timer = QTimer(self); self._timer.setInterval(30); self._timer.timeout.connect(self.on_timer_tick); self._timer.start()
         self.refresh_devices()
+        self.update_checker = UpdateCheckThread(); self.update_checker.updateAvailable.connect(self.show_update_dialog); self.update_checker.start()
     def _create_left_panel(self) -> QWidget:
         panel=QWidget(); panel.setMaximumWidth(300); layout=QVBoxLayout(panel); layout.setSpacing(15)
-        title=QLabel("POLLING ANALYSIS"); title.setObjectName("TitleLabel"); status=QLabel("장치 연결 후 시작 버튼을 누르세요."); status.setObjectName("StatusLabel"); status.setWordWrap(True); self.status_label = status; self.status_label.setMinimumHeight(35); self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        title=QLabel("폴링 테스트"); title.setObjectName("TitleLabel"); status=QLabel("장치 연결 후 시작 버튼을 누르세요."); status.setObjectName("StatusLabel"); status.setWordWrap(True); self.status_label = status; self.status_label.setMinimumHeight(35); self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
         layout.addWidget(title); layout.addWidget(status)
         layout.addWidget(QLabel("테스트 대상:"))
         self.cmb_xinput_device = QComboBox(); layout.addWidget(self.cmb_xinput_device)
@@ -283,43 +280,39 @@ class MainWindow(QWidget):
     def _create_right_panel(self) -> QWidget:
         panel=QWidget(); panel.setMinimumWidth(480)
         layout=QVBoxLayout(panel); layout.setSpacing(15)
-        circ_box=QGroupBox("스틱 원형도"); circ_layout_main = QHBoxLayout()
-        self.circL = CircularityWidget("L STICK"); self.circL.axis0_title.setText("AXIS 0"); self.circL.axis1_title.setText("AXIS 1")
-        self.circR = CircularityWidget("R STICK"); self.circR.axis0_title.setText("AXIS 2"); self.circR.axis1_title.setText("AXIS 3")
-        circ_layout_main.addWidget(self.circL); circ_layout_main.addWidget(self.circR)
-        final_circ_layout = QVBoxLayout(circ_box); final_circ_layout.addLayout(circ_layout_main)
-        btn_circ_reset=QPushButton("원형도 데이터 리셋"); btn_circ_reset.clicked.connect(lambda:[self.circL.reset(),self.circR.reset()]); final_circ_layout.addWidget(btn_circ_reset)
-        vib_box=QGroupBox("진동(Rumble) 테스트"); vib_layout=QVBoxLayout(vib_box)
+        self.axis_box = QGroupBox("스틱 AXIS 값"); axis_layout = QHBoxLayout(self.axis_box)
+        self.axis_L = AxisDisplayWidget("좌측 스틱"); self.axis_R = AxisDisplayWidget("우측 스틱")
+        self.axis_L.axis0_title.setText("AXIS 0"); self.axis_L.axis1_title.setText("AXIS 1")
+        self.axis_R.axis0_title.setText("AXIS 2"); self.axis_R.axis1_title.setText("AXIS 3")
+        axis_layout.addWidget(self.axis_L); axis_layout.addWidget(self.axis_R)
+        vib_box=QGroupBox("진동 테스트"); vib_layout=QVBoxLayout(vib_box)
         self.sld_left=QSlider(Qt.Horizontal); self.sld_left.setRange(0,100); self.sld_left.setValue(50); self.sld_right=QSlider(Qt.Horizontal); self.sld_right.setRange(0,100); self.sld_right.setValue(50)
-        self.btn_vib=QPushButton("진동 테스트"); self.btn_vib.clicked.connect(self.toggle_vibration)
-        vib_layout.addWidget(QLabel("저주파")); vib_layout.addWidget(self.sld_left); vib_layout.addWidget(QLabel("고주파")); vib_layout.addWidget(self.sld_right); vib_layout.addWidget(self.btn_vib)
+        self.btn_vib=QPushButton("진동 테스트"); self.btn_vib.setObjectName("VibButton"); self.btn_vib.clicked.connect(self.toggle_vibration)
+        vib_layout.addWidget(QLabel("좌측 진동 모터")); vib_layout.addWidget(self.sld_left); vib_layout.addWidget(QLabel("우측 진동 모터")); vib_layout.addWidget(self.sld_right); vib_layout.addWidget(self.btn_vib)
         self.sld_left.valueChanged.connect(self.update_vibration_intensity); self.sld_right.valueChanged.connect(self.update_vibration_intensity)
-        layout.addWidget(circ_box,1); layout.addWidget(vib_box,0)
+        self.btn_about = QPushButton("정보"); self.btn_about.setObjectName("AboutButton"); self.btn_about.clicked.connect(self.show_about_dialog); self.btn_about.setFixedSize(80, 32)
+        about_layout = QHBoxLayout(); about_layout.addStretch(1); about_layout.addWidget(self.btn_about)
+        layout.addWidget(self.axis_box); layout.addWidget(vib_box,0); layout.addStretch(1); layout.addLayout(about_layout)
         return panel
     @Slot()
     def on_timer_tick(self):
-        self.check_connection_status_realtime()
-        self.update_gamepad_ui()
+        self.check_connection_status_realtime(); self.update_gamepad_ui()
     def check_connection_status_realtime(self):
         current_connections = [self._xi.get_state(i)[0] == ERROR_SUCCESS for i in range(4)]
         if current_connections != self.last_connection_state:
-            self.last_connection_state = current_connections
-            self.refresh_devices()
+            self.last_connection_state = current_connections; self.refresh_devices()
     def update_start_button_state(self):
         if self.is_measuring: return
         idx = self.cmb_xinput_device.currentData(Qt.UserRole)
-        if idx is None:
-            self.toggle_measure_button.setEnabled(False)
-            return
-        res, _ = self._xi.get_state(idx)
-        self.toggle_measure_button.setEnabled(res == ERROR_SUCCESS)
+        if idx is None: self.toggle_measure_button.setEnabled(False); return
+        res, _ = self._xi.get_state(idx); self.toggle_measure_button.setEnabled(res == ERROR_SUCCESS)
     @Slot()
     def update_gamepad_ui(self):
         idx = int(self.cmb_xinput_device.currentData(Qt.UserRole) or 0); res, state = self._xi.get_state(idx)
         if res == ERROR_SUCCESS:
             gp = state.Gamepad; self.gamepad_widget.update_state(gp)
-            self.circL.add_sample(gp.sThumbLX / 32767.0, -gp.sThumbLY / 32767.0)
-            self.circR.add_sample(gp.sThumbRX / 32767.0, -gp.sThumbRY / 32767.0)
+            self.axis_L.update_values(gp.sThumbLX / 32767.0, -gp.sThumbLY / 32767.0)
+            self.axis_R.update_values(gp.sThumbRX / 32767.0, -gp.sThumbRY / 32767.0)
     @Slot()
     def toggle_measurement(self):
         if self.is_measuring: self.stop_measure()
@@ -332,10 +325,15 @@ class MainWindow(QWidget):
         self._thread.statsUpdated.connect(self.on_stats); self._thread.deviceError.connect(self.on_error); self._thread.start()
         self.is_measuring = True; self.toggle_measure_button.setText("측정 중지"); self.toggle_measure_button.setObjectName("StopButton"); self.style().polish(self.toggle_measure_button); self.status_label.setText("측정 중... 컨트롤러를 계속 움직여주세요.")
         self.cmb_xinput_device.setEnabled(False); self.btn_refresh.setEnabled(False)
+        QTimer.singleShot(30000, self.stop_measure_if_running)
+    def stop_measure_if_running(self):
+        if self.is_measuring: self.stop_measure()
     def stop_measure(self):
-        if self._thread and self._thread.snapshot_intervals_ns():
-            self.auto_save_report(self._thread.snapshot_intervals_ns())
-        if self._thread: self._thread.stop(); self._thread.wait(1500); self._thread = None
+        data_to_save = None
+        if self._thread:
+            if self._thread.snapshot_intervals_ns(): data_to_save = self._thread.snapshot_intervals_ns()
+            self._thread.stop(); self._thread.wait(1500); self._thread = None
+        if data_to_save: self.auto_save_report(data_to_save)
         if self._vib_on: self._xi.set_vibration(self._dev_idx, 0, 0); self._vib_on = False; self.btn_vib.setText("진동 테스트")
         self.is_measuring = False; self.toggle_measure_button.setText("측정 시작"); self.toggle_measure_button.setObjectName("StartButton"); self.style().polish(self.toggle_measure_button); self.status_label.setText("측정이 중지되었습니다.")
         self.cmb_xinput_device.setEnabled(True); self.btn_refresh.setEnabled(True); self.update_start_button_state()
@@ -352,8 +350,8 @@ class MainWindow(QWidget):
         for idx in range(4):
             res, _ = self._xi.get_state(idx); label = f"#{idx + 1}"
             if res == ERROR_SUCCESS:
-                name = pygame_names.get(idx)
-                if name: label += f" [{name}]"
+                name = pygame_names.get(idx, "")
+                if name: label += f" [{name.split(' (Controller')[0]}]"
                 else:
                     caps = self._xi.get_capabilities(idx)
                     subtype_name = _SUBTYPE_NAME.get(caps.SubType, "장치") if caps else "장치"; label += f" [{subtype_name}]"
@@ -361,14 +359,10 @@ class MainWindow(QWidget):
             self.cmb_xinput_device.addItem(label, userData=idx)
         if current_selection is not None: self.cmb_xinput_device.setCurrentIndex(current_selection)
         self.update_start_button_state()
-
     def auto_save_report(self, data_ns: List[int]):
         base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
-        dev_text = self.cmb_xinput_device.currentText()
-        sanitized_name = "".join(c for c in dev_text if c.isalnum() or c in " _-").replace("__", "_").strip()
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"Report_{sanitized_name}_{timestamp}.txt"
-        path = os.path.join(base_path, filename)
+        dev_text = self.cmb_xinput_device.currentText(); sanitized_name = "".join(c for c in dev_text if c.isalnum() or c in " _-").replace("__", "_").strip()
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S'); filename = f"Report_{sanitized_name}_{timestamp}.txt"; path = os.path.join(base_path, filename)
         stats = self._compute_stats_static(data_ns)
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -384,8 +378,7 @@ class MainWindow(QWidget):
     @staticmethod
     def _compute_stats_static(intervals_ns: List[int]) -> dict:
         if len(intervals_ns) < 10: return {"samples": len(intervals_ns)}
-        ms = [x / 1_000_000.0 for x in intervals_ns]
-        mu = mean(ms)
+        ms = [x / 1_000_000.0 for x in intervals_ns]; mu = mean(ms)
         if len(ms) > 1:
             sigma = stdev(ms); low, high = mu - 2 * sigma, mu + 2 * sigma
             stability = (sum(1 for v in ms if low <= v <= high) / len(ms)) * 100.0
@@ -401,22 +394,66 @@ class MainWindow(QWidget):
         if self._xi.get_state(idx)[0] != ERROR_SUCCESS: return
         if not self._vib_on: self._vib_on = True; self.btn_vib.setText("테스트 종료"); self.update_vibration_intensity()
         else: self._vib_on = False; self.btn_vib.setText("진동 테스트"); self._xi.set_vibration(idx, 0, 0)
+    @Slot(str)
+    def show_update_dialog(self, new_version: str):
+        msg_box = QMessageBox(self); msg_box.setWindowTitle("업데이트 알림")
+        msg_box.setText(f"새로운 버전 {new_version}을(를) 사용할 수 있습니다.\n다운로드 페이지로 이동하시겠습니까?"); msg_box.setIcon(QMessageBox.Information)
+        update_button = msg_box.addButton("업데이트", QMessageBox.ActionRole); cancel_button = msg_box.addButton("나중에", QMessageBox.RejectRole)
+        msg_box.exec()
+        if msg_box.clickedButton() == update_button: webbrowser.open("https://github.com/deuxdoom/GamePadTester/releases")
+    def show_about_dialog(self):
+        about = AboutDialog(self); about.exec()
     def closeEvent(self, event):
         self.stop_measure(); super().closeEvent(event)
 
-def _load_app_icon() -> Optional[QIcon]:
+class AboutDialog(QDialog):
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent); self.setWindowTitle("정보"); self.setFixedSize(400, 280)
+        layout = QVBoxLayout(self); layout.setSpacing(15); layout.setContentsMargins(20, 20, 20, 20)
+        icon_label = QLabel(); pixmap = _load_app_pixmap()
+        if pixmap: icon_label.setPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon_label.setAlignment(Qt.AlignCenter); layout.addWidget(icon_label)
+        title_label = QLabel(f"게임패드 테스트 v{VERSION}"); title_label.setObjectName("TitleLabel"); title_label.setAlignment(Qt.AlignCenter); layout.addWidget(title_label)
+        desc_label = QLabel("XInput 컨트롤러의 폴링레이트, 버튼, 스틱, 진동을 테스트하는 프로그램입니다."); desc_label.setWordWrap(True); desc_label.setAlignment(Qt.AlignCenter); layout.addWidget(desc_label)
+        layout.addStretch(1)
+        github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("https://github.com/deuxdoom/GamePadTester")); layout.addWidget(github_button)
+
+_temp_icon_path = None
+def _cleanup_temp_icon():
+    global _temp_icon_path
+    if _temp_icon_path and os.path.exists(_temp_icon_path):
+        try: os.remove(_temp_icon_path)
+        except Exception as e: print(f"임시 아이콘 파일 삭제 실패: {e}")
+
+def _load_app_pixmap() -> Optional[QPixmap]:
+    global _temp_icon_path
     try: from icon import ICON_BASE64
     except Exception: return None
-    try: pm = QPixmap(); pm.loadFromData(base64.b64decode(ICON_BASE64)); return QIcon(pm)
-    except Exception: return None
+    try:
+        data = base64.b64decode(ICON_BASE64)
+        if _temp_icon_path is None or not os.path.exists(_temp_icon_path):
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+                f.write(data)
+                _temp_icon_path = f.name
+            atexit.register(_cleanup_temp_icon)
+        
+        pixmap = QPixmap(_temp_icon_path)
+        return pixmap
+    except Exception as e:
+        print(f"아이콘 로드 실패: {e}")
+        return None
 
 def main():
     if os.name != "nt": print("이 프로그램은 Windows(XInput) 전용입니다."); return
     app = QApplication(sys.argv); app.setStyleSheet(STYLESHEET)
-    app_icon = _load_app_icon()
-    if app_icon: app.setWindowIcon(app_icon)
+    
+    pixmap = _load_app_pixmap()
+    app_icon = QIcon(pixmap) if pixmap else QIcon()
+    app.setWindowIcon(app_icon)
+    
     w = MainWindow()
-    if app_icon: w.setWindowIcon(app_icon)
+    w.setWindowIcon(app_icon)
+    
     w.show(); sys.exit(app.exec())
 
 if __name__ == "__main__":

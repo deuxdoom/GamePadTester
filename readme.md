@@ -1,4 +1,7 @@
 <p align="center">
+  <img src="main.png" alt="ApexGIFMaker 메인 UI" width="820">
+</p>
+<p align="center">
   <img src="icon.png" width="256" alt="GamePadTester icon" />
 </p>
 <h1 align="center">GamePadTester</h1>
