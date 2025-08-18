@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/icon.png" width="96" alt="GamePadTester icon" />
+  <img src="/icon.png" width="128" alt="GamePadTester icon" />
 </p>
 <h1 align="center">GamePadTester</h1>
 <p align="center">
