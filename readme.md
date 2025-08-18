@@ -6,12 +6,14 @@
 </p>
 <h1 align="center">GamePadTester</h1>
 <p align="center">
-  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/v/release/deuxdoom/GamePadTester?logo=github" alt="release"/></a>
-  <a href="https://github.com/deuxdoom/GamePadTester/blob/main/LICENSE"><img src="https://img.shields.io/github/license/deuxdoom/GamePadTester" alt="license"/></a>
-  <img src="https://img.shields.io/badge/OS-Windows-0078D6?logo=windows" alt="os"/>
-  <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python" alt="python"/>
-  <img src="https://img.shields.io/badge/GUI-PySide6-41CD52?logo=qt" alt="pyside6"/>
-  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/total?logo=github" alt="downloads"/></a>
+  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/v/release/deuxdoom/GamePadTester?logo=github&label=RELEASE" alt="RELEASE"/></a>
+  <a href="https://github.com/deuxdoom/GamePadTester/blob/main/LICENSE"><img src="https://img.shields.io/github/license/deuxdoom/GamePadTester?label=LICENSE" alt="LICENSE"/></a>
+  <img src="https://img.shields.io/badge/OS-WINDOWS-0078D6?logo=windows" alt="OS-WINDOWS"/>
+  <img src="https://img.shields.io/badge/PYTHON-3.9%2B-3776AB?logo=python" alt="PYTHON-3.9+"/>
+  <img src="https://img.shields.io/badge/GUI-PYSIDE6-41CD52?logo=qt" alt="GUI-PYSIDE6"/>
+  <img src="https://img.shields.io/badge/PYGAME-OPTIONAL-3776AB?logo=python" alt="PYGAME-OPTIONAL"/>
+  <a href="https://github.com/deuxdoom/GamePadTester/releases/latest"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/latest/total?logo=github&label=LATEST%20DOWNLOADS" alt="LATEST DOWNLOADS"/></a>
+  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/total?logo=github&label=TOTAL%20DOWNLOADS" alt="TOTAL DOWNLOADS"/></a>
 </p>
 
 > 윈도우용 XInput 게임패드 테스터: 폴링레이트 측정, D-Pad/ABXY등 버튼 테스트, 스틱 AXIS 측정, 진동 테스트
