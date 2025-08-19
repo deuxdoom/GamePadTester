@@ -1,25 +1,16 @@
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 # GamePadTester
-# Version: 1.8.5
+# Version: 2.0.1
 """
 XInput 기반 게임 컨트롤러 테스터 (화이트 UI 테마)
-- v1.8.5: icon.py 의존성 제거 및 아이콘 내장, 코드 최적화
-- v1.8.4: 코드 전반 재점검 및 최적화, 버튼 비활성화 스타일 적용, D-Pad 및 UI 레이아웃 최종 수정
-- v1.8.3: 자이로/모션 입력을 라디오 버튼으로 변경, 샘플 수 옵션 및 기본값 수정, D-Pad 레이아웃 조정
-- v1.8.2: LB/RB 및 LT/RT 버튼 크기 재조정, 좌측 패널 '테스트 대상' 레이아웃 조정, 체크박스 스타일 수정
-- v1.8.1: 샘플 수 기반 자동 측정 종료 기능 추가, '500' 샘플 옵션 추가 및 기본값 설정, 미연결 시 측정 버튼 비활성화 처리
-- v1.8.0: LB/RB 및 LT/RT 버튼 크기 조정
-- v1.7.9: D-Pad 간격 추가 조정, 어깨/트리거 버튼 크기 미세 조정, 체크박스 스타일 개선
-- v1.7.8: 트리거/어깨 버튼 레이아웃 변경, 체크박스 스타일 수정, 좌측 패널 레이아웃 미세 조정
-- v1.7.7: 체크박스 체크 표시 시인성 개선, 게임패드 UI 레이아웃 전면 재배치, D-Pad 디자인 변경
-- v1.7.6: 체크박스 시인성 개선, 게임패드 UI 레이아웃 재배치 및 버튼 크기 조정
-- v1.7.5: 콤보박스 드롭다운 스타일 수정, D-Pad 및 트리거 UI 시각적 개선
-- v1.7.4: UI 크기 변동 문제 수정, 진동 테스트 그룹박스 제목 제거
-- v1.7.3: UI 레이아웃 및 스타일 미세 조정 (체크박스, 버튼, 그룹박스 제목 잘림 문제 해결)
-- v1.7.2: 좌측 패널 레이아웃 조정, 게임패드 D-Pad 및 ABXY 버튼 시인성 개선
-- v1.7.1: 화이트 테마 적용 및 시인성 개선, 게임패드 UI 재설계 (트리거 버튼 위치 및 스타일 변경), 이름 변경
-- 기능은 원본 코드를 계승, UI/UX 및 코드 구조를 완전히 재설계
-- 의존성: PySide6, pygame
+
+[v2.0.1]
+- UI 갱신 타이머 주기를 수정하여 아날로그 스틱 입력 지연 문제 해결
+
+[v2.0.0] - 메이저 업데이트
+- 컨트롤러 연결 순서 고정: 새로 연결된 컨트롤러가 기존 순서를 유지하며 목록 하단에 추가되도록 변경
+- UI 레이아웃 개선: 컨트롤러 이름 길이에 상관없이 통계 패널의 좌우 밸런스가 유지되도록 수정
+- 시인성 강화: L3/R3 스틱 클릭 시 테두리 두께를 상향하여 입력 상태를 명확히 인지하도록 개선
 """
 from __future__ import annotations
 import sys
@@ -44,10 +35,10 @@ VERSION = "2.0.1"
 # ----- 아이콘 데이터 -----
 ICON_BASE64 = "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"
 
-# ----- Qt (PySide6) -----
+# ----- Qt (Py-Side6) -----
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QTimer, QPointF, QRectF, QSize
 from PySide6.QtGui import (
-    QPainter, QPen, QBrush, QColor, QFont, QIcon, QPixmap, QPainterPath, QLinearGradient
+    QPainter, QPen, QBrush, QColor, QFont, QIcon, QPixmap, QPainterPath
 )
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QPushButton, QComboBox,
@@ -113,7 +104,16 @@ class PollingThread(QThread):
     measurementFinished = Signal() # Signal to indicate measurement is complete
     def __init__(self, device_index: int, max_samples: int = 1000, include_gyro: bool = False):
         super().__init__()
-        self.device_index = device_index; self.max_samples = max(20, int(max_samples)); self.include_gyro = include_gyro; self._stop = threading.Event(); self.xi = XInput(); self._lock = threading.Lock(); self._intervals_ns: Deque[int] = deque(maxlen=self.max_samples); self._all_intervals_ns: List[int] = []; self._last_state = XINPUT_STATE(); self._last_change_ts_ns: Optional[int] = None
+        self.device_index = device_index
+        self.max_samples = max(20, int(max_samples))
+        self.include_gyro = include_gyro
+        self._stop = threading.Event()
+        self.xi = XInput()
+        self._lock = threading.Lock()
+        self._intervals_ns: Deque[int] = deque(maxlen=self.max_samples)
+        self._all_intervals_ns: List[int] = []
+        self._last_state = XINPUT_STATE()
+        self._last_change_ts_ns: Optional[int] = None
     
     def snapshot_intervals_ns(self) -> List[int]:
         with self._lock: return list(self._all_intervals_ns)
@@ -160,7 +160,7 @@ class UpdateCheckThread(QThread):
     updateAvailable = Signal(str)
     def run(self):
         try:
-            req = url_request.Request("[https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest](https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest)", headers={'Accept': 'application/vnd.github.v3+json'})
+            req = url_request.Request("https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest", headers={'Accept': 'application/vnd.github.v3+json'})
             with url_request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode('utf-8'))
                 latest_version_tag = data['tag_name']
@@ -270,7 +270,8 @@ class AnalogStickWidget(QWidget):
         handle_color = QColor("#333333")
         bg_color = QColor("#f0f0f0")
 
-        painter.setPen(QPen(border_color, 2))
+        pen_width = 8 if self.is_pressed else 2
+        painter.setPen(QPen(border_color, pen_width))
         painter.setBrush(bg_color)
         painter.drawEllipse(center, radius, radius)
         
@@ -470,6 +471,7 @@ class MainWindow(QWidget):
         self.setFixedSize(1300, 720)
         self._thread: Optional[PollingThread] = None; self._xi = XInput(); self._dev_idx = 0; self._vib_on = False; self.is_measuring = False
         self.last_connection_state = [False, False, False, False]
+        self.device_order: List[int] = [] # Stable order of connected devices
         
         root_layout = QHBoxLayout(self)
         root_layout.setContentsMargins(20, 20, 20, 20)
@@ -488,7 +490,8 @@ class MainWindow(QWidget):
         panel=QWidget()
         layout=QGridLayout(panel)
         layout.setSpacing(15)
-        layout.setColumnStretch(1, 1) # Make second column stretchable
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 1)
 
         title=QLabel("폴링 및 입력 테스트"); title.setObjectName("TitleLabel")
         status=QLabel("장치 연결 후 시작 버튼을 누르세요."); status.setObjectName("StatusLabel"); status.setWordWrap(True)
@@ -508,12 +511,16 @@ class MainWindow(QWidget):
         self.btn_refresh.clicked.connect(self.refresh_devices)
         layout.addWidget(self.btn_refresh, 2, 1, Qt.AlignRight) 
 
+        # Isolate device selector to prevent it from affecting column balance
+        device_widget = QWidget()
+        device_layout = QHBoxLayout(device_widget)
+        device_layout.setContentsMargins(0,0,0,0)
         device_label = QLabel("테스트 대상:")
-        device_label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
-        layout.addWidget(device_label, 3, 0)
         self.cmb_xinput_device = QComboBox()
         self.cmb_xinput_device.currentIndexChanged.connect(self.update_start_button_state)
-        layout.addWidget(self.cmb_xinput_device, 3, 1)
+        device_layout.addWidget(device_label)
+        device_layout.addWidget(self.cmb_xinput_device, 1) # Add stretch to combobox
+        layout.addWidget(device_widget, 3, 0, 1, 2)
 
         self.stats = {
             "mean_hz": StatWidget("평균", "Hz"), 
@@ -583,12 +590,14 @@ class MainWindow(QWidget):
 
     @Slot()
     def on_timer_tick(self):
-        self.check_connection_status_realtime(); self.update_gamepad_ui()
+        self.check_connection_status_realtime()
+        self.update_gamepad_ui()
 
     def check_connection_status_realtime(self):
         current_connections = [self._xi.get_state(i)[0] == ERROR_SUCCESS for i in range(4)]
         if current_connections != self.last_connection_state:
-            self.last_connection_state = current_connections; self.refresh_devices()
+            self.last_connection_state = current_connections
+            self.refresh_devices()
 
     def update_start_button_state(self):
         if self.is_measuring: return
@@ -601,7 +610,9 @@ class MainWindow(QWidget):
 
     @Slot()
     def update_gamepad_ui(self):
-        idx = int(self.cmb_xinput_device.currentData(Qt.UserRole) or 0); res, state = self._xi.get_state(idx)
+        idx = self.cmb_xinput_device.currentData(Qt.UserRole)
+        if idx is None: return
+        res, state = self._xi.get_state(idx)
         if res == ERROR_SUCCESS:
             gp = state.Gamepad; self.gamepad_widget.update_state(gp)
             self.axis_L.update_values(gp.sThumbLX / 32767.0, -gp.sThumbLY / 32767.0)
@@ -649,23 +660,53 @@ class MainWindow(QWidget):
     def on_error(self, msg: str): self.status_label.setText(f"오류: {msg}"); self.stop_measure()
 
     def refresh_devices(self):
-        pygame_names = get_gamepad_names_from_pygame()
-        current_selection = self.cmb_xinput_device.currentData(Qt.UserRole)
-        self.cmb_xinput_device.clear()
-        any_connected = False
+        current_connections = [self._xi.get_state(i)[0] == ERROR_SUCCESS for i in range(4)]
         for idx in range(4):
-            res, _ = self._xi.get_state(idx); label = f"#{idx + 1}"
+            if current_connections[idx] and idx not in self.device_order:
+                self.device_order.append(idx)
+
+        pygame_names = get_gamepad_names_from_pygame()
+        current_selection_data = self.cmb_xinput_device.currentData(Qt.UserRole)
+        self.cmb_xinput_device.clear()
+        
+        any_connected = False
+        
+        display_order = self.device_order + [i for i in range(4) if i not in self.device_order]
+
+        for idx in display_order:
+            res, _ = self._xi.get_state(idx)
+            
+            if idx in self.device_order:
+                app_slot_num = self.device_order.index(idx) + 1
+                label = f"#{app_slot_num}"
+            else:
+                label = f"포트 #{idx + 1}"
+
             if res == ERROR_SUCCESS:
                 any_connected = True
                 name = pygame_names.get(idx, "")
-                if name: label += f" [{name.split(' (Controller')[0]}]"
+                if name:
+                    label += f" [{name.split(' (Controller')[0]}]"
                 else:
                     caps = self._xi.get_capabilities(idx)
-                    subtype_name = _SUBTYPE_NAME.get(caps.SubType, "장치") if caps else "장치"; label += f" [{subtype_name}]"
-            else: label += " (미연결)"
+                    subtype_name = _SUBTYPE_NAME.get(caps.SubType, "장치") if caps else "장치"
+                    label += f" [{subtype_name}]"
+            else:
+                label += " (미연결)"
+            
             self.cmb_xinput_device.addItem(label, userData=idx)
-        if current_selection is not None: self.cmb_xinput_device.setCurrentIndex(current_selection)
         
+        if current_selection_data is not None:
+            index_in_new_list = self.cmb_xinput_device.findData(current_selection_data, Qt.UserRole)
+            if index_in_new_list != -1:
+                self.cmb_xinput_device.setCurrentIndex(index_in_new_list)
+        else:
+            for i in range(self.cmb_xinput_device.count()):
+                idx = self.cmb_xinput_device.itemData(i, Qt.UserRole)
+                if idx is not None and current_connections[idx]:
+                    self.cmb_xinput_device.setCurrentIndex(i)
+                    break
+
         self.toggle_measure_button.setEnabled(any_connected)
         self.update_start_button_state()
 
@@ -715,7 +756,7 @@ class MainWindow(QWidget):
         msg_box.setText(f"새로운 버전 {new_version}을(를) 사용할 수 있습니다.\n다운로드 페이지로 이동하시겠습니까?"); msg_box.setIcon(QMessageBox.Information)
         update_button = msg_box.addButton("업데이트", QMessageBox.ActionRole); cancel_button = msg_box.addButton("나중에", QMessageBox.RejectRole)
         msg_box.exec()
-        if msg_box.clickedButton() == update_button: webbrowser.open("[https://github.com/deuxdoom/GamePadTester/releases](https://github.com/deuxdoom/GamePadTester/releases)")
+        if msg_box.clickedButton() == update_button: webbrowser.open("https://github.com/deuxdoom/GamePadTester/releases")
 
     def show_about_dialog(self):
         about = AboutDialog(self); about.exec()
@@ -735,7 +776,7 @@ class AboutDialog(QDialog):
         title_label = QLabel(f"게임패드 테스터 v{VERSION}"); title_label.setObjectName("TitleLabel"); title_label.setAlignment(Qt.AlignCenter); layout.addWidget(title_label)
         desc_label = QLabel("XInput 컨트롤러의 폴링레이트, 버튼, 스틱, 진동을 테스트하는 프로그램입니다."); desc_label.setWordWrap(True); desc_label.setAlignment(Qt.AlignCenter); layout.addWidget(desc_label)
         layout.addStretch(1)
-        github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("[https://github.com/deuxdoom/GamePadTester](https://github.com/deuxdoom/GamePadTester)")); layout.addWidget(github_button)
+        github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("https://github.com/deuxdoom/GamePadTester")); layout.addWidget(github_button)
 
 _temp_icon_path = None
 def _cleanup_temp_icon():
