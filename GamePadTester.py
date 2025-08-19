@@ -1,6 +1,26 @@
+# -*- coding: utf-8 -*-
 # GamePadTester
-# Version: 2.0.0
-
+# Version: 1.8.5
+"""
+XInput 기반 게임 컨트롤러 테스터 (화이트 UI 테마)
+- v1.8.5: icon.py 의존성 제거 및 아이콘 내장, 코드 최적화
+- v1.8.4: 코드 전반 재점검 및 최적화, 버튼 비활성화 스타일 적용, D-Pad 및 UI 레이아웃 최종 수정
+- v1.8.3: 자이로/모션 입력을 라디오 버튼으로 변경, 샘플 수 옵션 및 기본값 수정, D-Pad 레이아웃 조정
+- v1.8.2: LB/RB 및 LT/RT 버튼 크기 재조정, 좌측 패널 '테스트 대상' 레이아웃 조정, 체크박스 스타일 수정
+- v1.8.1: 샘플 수 기반 자동 측정 종료 기능 추가, '500' 샘플 옵션 추가 및 기본값 설정, 미연결 시 측정 버튼 비활성화 처리
+- v1.8.0: LB/RB 및 LT/RT 버튼 크기 조정
+- v1.7.9: D-Pad 간격 추가 조정, 어깨/트리거 버튼 크기 미세 조정, 체크박스 스타일 개선
+- v1.7.8: 트리거/어깨 버튼 레이아웃 변경, 체크박스 스타일 수정, 좌측 패널 레이아웃 미세 조정
+- v1.7.7: 체크박스 체크 표시 시인성 개선, 게임패드 UI 레이아웃 전면 재배치, D-Pad 디자인 변경
+- v1.7.6: 체크박스 시인성 개선, 게임패드 UI 레이아웃 재배치 및 버튼 크기 조정
+- v1.7.5: 콤보박스 드롭다운 스타일 수정, D-Pad 및 트리거 UI 시각적 개선
+- v1.7.4: UI 크기 변동 문제 수정, 진동 테스트 그룹박스 제목 제거
+- v1.7.3: UI 레이아웃 및 스타일 미세 조정 (체크박스, 버튼, 그룹박스 제목 잘림 문제 해결)
+- v1.7.2: 좌측 패널 레이아웃 조정, 게임패드 D-Pad 및 ABXY 버튼 시인성 개선
+- v1.7.1: 화이트 테마 적용 및 시인성 개선, 게임패드 UI 재설계 (트리거 버튼 위치 및 스타일 변경), 이름 변경
+- 기능은 원본 코드를 계승, UI/UX 및 코드 구조를 완전히 재설계
+- 의존성: PySide6, pygame
+"""
 from __future__ import annotations
 import sys
 import os
@@ -19,7 +39,10 @@ from datetime import datetime
 from urllib import request as url_request
 
 # ----- 버전 정보 -----
-VERSION = "2.0.0"
+VERSION = "2.0.1"
+
+# ----- 아이콘 데이터 -----
+ICON_BASE64 = "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"
 
 # ----- Qt (PySide6) -----
 from PySide6.QtCore import Qt, QThread, Signal, Slot, QTimer, QPointF, QRectF, QSize
@@ -137,7 +160,7 @@ class UpdateCheckThread(QThread):
     updateAvailable = Signal(str)
     def run(self):
         try:
-            req = url_request.Request("https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest", headers={'Accept': 'application/vnd.github.v3+json'})
+            req = url_request.Request("[https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest](https://api.github.com/repos/deuxdoom/GamePadTester/releases/latest)", headers={'Accept': 'application/vnd.github.v3+json'})
             with url_request.urlopen(req, timeout=5) as response:
                 data = json.loads(response.read().decode('utf-8'))
                 latest_version_tag = data['tag_name']
@@ -165,7 +188,7 @@ QPushButton:pressed { background-color: #d0d0d0; }
 QPushButton:disabled { background-color: #f5f5f5; color: #aaa; border-color: #dcdcdc; }
 QPushButton#StartButton { background-color: #007bff; color: white; border-color: #0069d9; }
 QPushButton#StartButton:hover { background-color: #0069d9; }
-QPushButton#StartButton:disabled { background-color: #f5f5f5; color: #aaa; border-color: #dcdcdc; }
+QPushButton#StartButton:disabled { background-color: #e7e7e7; color: #aaa; border-color: #dcdcdc; }
 QPushButton#StopButton { background-color: #dc3545; color: white; border-color: #c82333; }
 QPushButton#StopButton:hover { background-color: #c82333; }
 QPushButton#VibButton { background-color: #ffc107; color: #212529; border-color: #e0a800; }
@@ -400,7 +423,7 @@ class GamepadWidget(QWidget):
         dpad_y_base = abxy_y_base
         arm_w = 30
         arm_l = 30
-        gap = 22 # Increased gap
+        gap = 15 # D-Pad gap adjusted
         
         # Define rects for each arm
         rect_up = QRectF(dpad_x_base - arm_w/2, dpad_y_base - arm_l - gap, arm_w, arm_l)
@@ -692,7 +715,7 @@ class MainWindow(QWidget):
         msg_box.setText(f"새로운 버전 {new_version}을(를) 사용할 수 있습니다.\n다운로드 페이지로 이동하시겠습니까?"); msg_box.setIcon(QMessageBox.Information)
         update_button = msg_box.addButton("업데이트", QMessageBox.ActionRole); cancel_button = msg_box.addButton("나중에", QMessageBox.RejectRole)
         msg_box.exec()
-        if msg_box.clickedButton() == update_button: webbrowser.open("https://github.com/deuxdoom/GamePadTester/releases")
+        if msg_box.clickedButton() == update_button: webbrowser.open("[https://github.com/deuxdoom/GamePadTester/releases](https://github.com/deuxdoom/GamePadTester/releases)")
 
     def show_about_dialog(self):
         about = AboutDialog(self); about.exec()
@@ -712,7 +735,7 @@ class AboutDialog(QDialog):
         title_label = QLabel(f"게임패드 테스터 v{VERSION}"); title_label.setObjectName("TitleLabel"); title_label.setAlignment(Qt.AlignCenter); layout.addWidget(title_label)
         desc_label = QLabel("XInput 컨트롤러의 폴링레이트, 버튼, 스틱, 진동을 테스트하는 프로그램입니다."); desc_label.setWordWrap(True); desc_label.setAlignment(Qt.AlignCenter); layout.addWidget(desc_label)
         layout.addStretch(1)
-        github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("https://github.com/deuxdoom/GamePadTester")); layout.addWidget(github_button)
+        github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("[https://github.com/deuxdoom/GamePadTester](https://github.com/deuxdoom/GamePadTester)")); layout.addWidget(github_button)
 
 _temp_icon_path = None
 def _cleanup_temp_icon():
@@ -723,8 +746,6 @@ def _cleanup_temp_icon():
 
 def _load_app_pixmap() -> Optional[QPixmap]:
     global _temp_icon_path
-    try: from icon import ICON_BASE64
-    except Exception: return None
     try:
         data = base64.b64decode(ICON_BASE64)
         if _temp_icon_path is None or not os.path.exists(_temp_icon_path):
