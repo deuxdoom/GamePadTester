@@ -37,9 +37,9 @@
 
 ## ✅ TODO
 
-- [ ] 🎮🔗 패드 다중 추가 시 **연결된 패드명 ↔ 실제 장치명** 불일치 문제 개선
+- [ ] 🎮🔗 패드 다중 추가 시 **연결된 패드명 ↔ 실제 장치명** 불일치 문제 개선 예정
 
---
+---
 
 ## 📥 다운로드
 - [Releases 페이지](https://github.com/deuxdoom/GamePadTester/releases)로 이동합니다.
