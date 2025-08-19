@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # GamePadTester
 # Version: 2.0.3
 
@@ -532,8 +531,8 @@ class MainWindow(QWidget):
         samples_layout = QHBoxLayout()
         samples_layout.addWidget(QLabel("샘플 수:"))
         self.cmb_samples = QComboBox()
-        self.cmb_samples.addItems(["1000", "2000", "4000"])
-        self.cmb_samples.setCurrentText("2000")
+        self.cmb_samples.addItems(["1000", "2000", "4000", "8000", "16000"])
+        self.cmb_samples.setCurrentText("4000")
         samples_layout.addWidget(self.cmb_samples)
         samples_layout.addStretch(1)
         
