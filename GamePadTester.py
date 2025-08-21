@@ -1,5 +1,6 @@
+
 # GamePadTester
-# Version: 2.0.4
+# Version: 2.0.5
 
 from __future__ import annotations
 import sys
@@ -30,7 +31,7 @@ import ctypes
 from ctypes import wintypes
 
 # ----- 버전 정보 -----
-VERSION = "2.0.4"
+VERSION = "2.0.5"
 
 # ----- 아이콘 데이터 -----
 # Base64로 인코딩된 64x64 PNG 아이콘 데이터를 여기에 직접 입력합니다.
@@ -304,8 +305,10 @@ class AnalogStickWidget(QWidget):
         painter.drawLine(QPointF(center.x(), center.y() - radius), QPointF(center.x(), center.y() + radius))
         
         # Draw handle on top of everything
-        handle_pos = QPointF(center.x() + self.x * radius * 0.7, center.y() + self.y * radius * 0.7)
-        painter.setBrush(QColor("#333333")); painter.setPen(Qt.NoPen); painter.drawEllipse(handle_pos, radius * 0.4, radius * 0.4)
+        handle_radius = 3
+        travel_radius = radius - handle_radius
+        handle_pos = QPointF(center.x() + self.x * travel_radius, center.y() + self.y * travel_radius)
+        painter.setBrush(QColor("#333333")); painter.setPen(Qt.NoPen); painter.drawEllipse(handle_pos, handle_radius, handle_radius)
 
 class GamepadWidget(QWidget):
     """게임패드 전체의 시각적 표현을 담당하는 메인 위젯."""
@@ -496,8 +499,9 @@ class MainWindow(QWidget):
         if res == ERROR_SUCCESS:
             gp = state.Gamepad
             self.gamepad_widget.update_state(gp)
-            self.axis_L.update_values(normalize_stick_value(gp.sThumbLX), -normalize_stick_value(gp.sThumbLY))
-            self.axis_R.update_values(normalize_stick_value(gp.sThumbRX), -normalize_stick_value(gp.sThumbRY))
+            # XInput 표준: Y축(sThumbLY)은 위가 양수(+), 아래가 음수(-)
+            self.axis_L.update_values(normalize_stick_value(gp.sThumbLX), normalize_stick_value(gp.sThumbLY))
+            self.axis_R.update_values(normalize_stick_value(gp.sThumbRX), normalize_stick_value(gp.sThumbRY))
 
     @Slot()
     def toggle_measurement(self):
@@ -517,7 +521,7 @@ class MainWindow(QWidget):
         
         self.is_measuring = True
         self.toggle_measure_button.setText("측정 중지"); self.toggle_measure_button.setObjectName("StopButton"); self.style().polish(self.toggle_measure_button)
-        self.status_label.setText("측정 중... 컨트롤러의 스틱 중 하나를 계속 돌려주세요.")
+        self.status_label.setText("측정 중... 컨트롤러를 계속 움직여주세요.")
         self.cmb_xinput_device.setEnabled(False); self.btn_refresh.setEnabled(False)
 
     @Slot()
