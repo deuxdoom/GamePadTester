@@ -1,6 +1,5 @@
-
 # GamePadTester
-# Version: 2.0.5
+# Version: 2.1.0
 
 from __future__ import annotations
 import sys
@@ -13,7 +12,7 @@ import webbrowser
 import json
 from collections import deque
 from statistics import mean, median, stdev
-from typing import Deque, List, Optional, Tuple
+from typing import Deque, List, Optional, Tuple, Set
 from datetime import datetime
 from urllib import request as url_request
 
@@ -31,7 +30,7 @@ import ctypes
 from ctypes import wintypes
 
 # ----- 버전 정보 -----
-VERSION = "2.0.5"
+VERSION = "2.1.0"
 
 # ----- 아이콘 데이터 -----
 # Base64로 인코딩된 64x64 PNG 아이콘 데이터를 여기에 직접 입력합니다.
@@ -43,10 +42,14 @@ class XINPUT_GAMEPAD(ctypes.Structure): _fields_ = [("wButtons", wintypes.WORD),
 class XINPUT_STATE(ctypes.Structure): _fields_ = [("dwPacketNumber", wintypes.DWORD),("Gamepad", XINPUT_GAMEPAD),]
 class XINPUT_VIBRATION(ctypes.Structure): _fields_ = [("wLeftMotorSpeed", wintypes.WORD),("wRightMotorSpeed", wintypes.WORD),]
 class XINPUT_CAPABILITIES(ctypes.Structure): _fields_ = [("Type", ctypes.c_ubyte),("SubType", ctypes.c_ubyte),("Flags", ctypes.c_ushort),("Gamepad", XINPUT_GAMEPAD),("Vibration", XINPUT_VIBRATION),]
+class XINPUT_BATTERY_INFORMATION(ctypes.Structure): _fields_ = [("BatteryType", ctypes.c_ubyte), ("BatteryLevel", ctypes.c_ubyte)]
+
 XINPUT_GAMEPAD_DPAD_UP, XINPUT_GAMEPAD_DPAD_DOWN, XINPUT_GAMEPAD_DPAD_LEFT, XINPUT_GAMEPAD_DPAD_RIGHT, XINPUT_GAMEPAD_START, XINPUT_GAMEPAD_BACK, XINPUT_GAMEPAD_LEFT_THUMB, XINPUT_GAMEPAD_RIGHT_THUMB, XINPUT_GAMEPAD_LEFT_SHOULDER, XINPUT_GAMEPAD_RIGHT_SHOULDER, XINPUT_GAMEPAD_A, XINPUT_GAMEPAD_B, XINPUT_GAMEPAD_X, XINPUT_GAMEPAD_Y = 0x0001,0x0002,0x0004,0x0008,0x0010,0x0020,0x0040,0x0080,0x0100,0x0200,0x1000,0x2000,0x4000,0x8000
 XINPUT_DEVSUBTYPE_GAMEPAD, XINPUT_DEVSUBTYPE_WHEEL, XINPUT_DEVSUBTYPE_ARCADE_STICK = 0x01, 0x02, 0x03
 _SUBTYPE_NAME = {XINPUT_DEVSUBTYPE_GAMEPAD: "Gamepad", XINPUT_DEVSUBTYPE_WHEEL: "Wheel", XINPUT_DEVSUBTYPE_ARCADE_STICK: "Arcade Stick"}
-ERROR_SUCCESS, ERROR_DEVICE_NOT_CONNECTED = 0, 1167
+BATTERY_TYPE_DISCONNECTED, BATTERY_TYPE_WIRED, BATTERY_TYPE_ALKALINE, BATTERY_TYPE_NIMH, BATTERY_TYPE_UNKNOWN = 0x00, 0x01, 0x02, 0x03, 0xFF
+BATTERY_LEVEL_EMPTY, BATTERY_LEVEL_LOW, BATTERY_LEVEL_MEDIUM, BATTERY_LEVEL_FULL = 0x00, 0x01, 0x02, 0x03
+ERROR_SUCCESS, ERROR_DEVICE_NOT_CONNECTED, ERROR_ALREADY_EXISTS = 0, 1167, 183
 
 # --- 유틸리티 함수 ---
 
@@ -122,11 +125,18 @@ class XInput:
             try: self.lib = ctypes.WinDLL(name); break
             except OSError as e: last_err = e; continue
         if self.lib is None: raise OSError(f"XInput DLL을 찾을 수 없습니다: {_XINPUT_DLLS} / 마지막 오류: {last_err}")
+        
         self.XInputGetState = self.lib.XInputGetState; self.XInputGetState.argtypes = [wintypes.DWORD, ctypes.POINTER(XINPUT_STATE)]; self.XInputGetState.restype = wintypes.DWORD
         try: self.XInputSetState = self.lib.XInputSetState; self.XInputSetState.argtypes = [wintypes.DWORD, ctypes.POINTER(XINPUT_VIBRATION)]; self.XInputSetState.restype = wintypes.DWORD
         except AttributeError: self.XInputSetState = None
         try: self.XInputGetCapabilities = self.lib.XInputGetCapabilities; self.XInputGetCapabilities.argtypes = [wintypes.DWORD, wintypes.DWORD, ctypes.POINTER(XINPUT_CAPABILITIES)]; self.XInputGetCapabilities.restype = wintypes.DWORD
         except AttributeError: self.XInputGetCapabilities = None
+        try: 
+            self.XInputGetBatteryInformation = self.lib.XInputGetBatteryInformation
+            self.XInputGetBatteryInformation.argtypes = [wintypes.DWORD, ctypes.c_ubyte, ctypes.POINTER(XINPUT_BATTERY_INFORMATION)]
+            self.XInputGetBatteryInformation.restype = wintypes.DWORD
+        except AttributeError: self.XInputGetBatteryInformation = None
+
     def get_state(self, idx: int) -> Tuple[int, XINPUT_STATE]:
         state = XINPUT_STATE(); res = self.XInputGetState(idx, ctypes.byref(state)); return int(res), state
     def set_vibration(self, idx: int, left: int, right: int) -> bool:
@@ -136,6 +146,13 @@ class XInput:
         if not self.XInputGetCapabilities: return None
         caps = XINPUT_CAPABILITIES(); res = self.XInputGetCapabilities(idx, 0, ctypes.byref(caps))
         if res == ERROR_SUCCESS: return caps
+        return None
+    def get_battery_info(self, idx: int) -> Optional[dict]:
+        if not self.XInputGetBatteryInformation: return None
+        info = XINPUT_BATTERY_INFORMATION()
+        # 0x00은 게임패드 장치를 의미
+        if self.XInputGetBatteryInformation(idx, 0x00, ctypes.byref(info)) == ERROR_SUCCESS:
+            return {"type": info.BatteryType, "level": info.BatteryLevel}
         return None
 
 class PollingThread(QThread):
@@ -148,11 +165,10 @@ class PollingThread(QThread):
     deviceError = Signal(str)
     measurementFinished = Signal()
 
-    def __init__(self, device_index: int, max_samples: int = 1000, include_gyro: bool = False):
+    def __init__(self, device_index: int, max_samples: int = 1000):
         super().__init__()
         self.device_index = device_index
         self.max_samples = max(20, int(max_samples))
-        self.include_gyro = include_gyro
         self._stop = threading.Event()
         self.xi = XInput()
         self._lock = threading.Lock() # 스레드 간 데이터 공유를 위한 Lock
@@ -178,7 +194,7 @@ class PollingThread(QThread):
 
             if current_state.dwPacketNumber != self._last_state.dwPacketNumber:
                 gamepad_changed = (ctypes.string_at(ctypes.byref(current_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)) != ctypes.string_at(ctypes.byref(self._last_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)))
-                if self.include_gyro or gamepad_changed:
+                if gamepad_changed:
                     dt = now_ns - self._last_change_ts_ns
                     if dt > 1000:
                         with self._lock: 
@@ -278,6 +294,95 @@ class StatWidget(QWidget):
         layout.addSpacing(5); layout.addWidget(self.unit_label, 0, Qt.AlignBottom | Qt.AlignLeft)
     def set_value(self, value: Optional[float], fmt: str = "{:.2f}"): self.value_label.setText(fmt.format(value) if value is not None else "-")
 
+class BatteryWidget(QWidget):
+    """배터리 상태 표시 위젯."""
+    def __init__(self):
+        super().__init__()
+        self.label = QLabel("")
+        self.label.setFixedWidth(80)
+        self.label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0,0,0,0)
+        layout.addWidget(self.label)
+    
+    def _format_level_html(self, level: int) -> str:
+        """배터리 레벨을 받아 색상이 적용된 HTML 문자열을 반환합니다."""
+        filled_char = "<font color='#28a745'>■</font>"  # Green color
+        empty_char = "<font color='#cccccc'>□</font>"
+        
+        if level == BATTERY_LEVEL_EMPTY:
+            return filled_char + empty_char * 3
+        elif level == BATTERY_LEVEL_LOW:
+            return filled_char * 2 + empty_char * 2
+        elif level == BATTERY_LEVEL_MEDIUM:
+            return filled_char * 3 + empty_char * 1
+        elif level == BATTERY_LEVEL_FULL:
+            return filled_char * 4
+        else:
+            return empty_char * 4
+
+    def update_status(self, info: Optional[dict]):
+        if info is None or info['type'] == BATTERY_TYPE_DISCONNECTED:
+            self.label.setText("")
+            return
+        
+        if info['type'] == BATTERY_TYPE_WIRED:
+            # 무선+완충 시 유선으로 표시되는 문제를 해결하고, 유선 연결 시 항상 완충으로 표시
+            full_charge_html = self._format_level_html(BATTERY_LEVEL_FULL)
+            self.label.setText(f"🔋 {full_charge_html}")
+        elif info['type'] in [BATTERY_TYPE_ALKALINE, BATTERY_TYPE_NIMH]:
+            level_icon_html = self._format_level_html(info['level'])
+            self.label.setText(f"🔋 {level_icon_html}")
+        elif info['type'] == BATTERY_TYPE_UNKNOWN:
+            self.label.setText("🔋 ?")
+        else:
+            self.label.setText("")
+
+class InputHistoryWidget(QWidget):
+    """입력 이벤트를 시간 순서대로 보여주는 시각적 로그 위젯."""
+    def __init__(self, max_items=25):
+        super().__init__()
+        self.history = deque(maxlen=max_items)
+        self.button_map = {
+            "A": "A", "B": "B", "X": "X", "Y": "Y",
+            "LB": "LB", "RB": "RB",
+            "START": "≡", "BACK": "⁝",
+            "LTHUMB": "L", "RTHUMB": "R",
+            "DPAD_UP": "↑", "DPAD_DOWN": "↓", "DPAD_LEFT": "←", "DPAD_RIGHT": "→"
+        }
+        self.setMinimumHeight(30)
+
+    def add_event(self, button_name: str):
+        if button_name in self.button_map:
+            self.history.append(self.button_map[button_name])
+            self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        box_width, spacing = 28, 4
+        font = self.font()
+        font.setPointSize(9)
+        font.setBold(True)
+        painter.setFont(font)
+
+        for i, text in enumerate(reversed(self.history)):
+            x = self.width() - (i + 1) * (box_width + spacing)
+            if x < 0: break
+            
+            rect = QRectF(x, 2, box_width, self.height() - 4)
+            
+            # 활성화(파란색) 표시 제거
+            bg_color = QColor("#e9e9e9")
+            text_color = QColor("#333333")
+            
+            painter.setPen(QColor("#adadad"))
+            painter.setBrush(bg_color)
+            painter.drawRoundedRect(rect, 4, 4)
+            
+            painter.setPen(text_color)
+            painter.drawText(rect, Qt.AlignCenter, text)
+
 class AnalogStickWidget(QWidget):
     """아날로그 스틱의 위치와 클릭 상태를 시각적으로 표현하는 위젯."""
     def __init__(self):
@@ -295,16 +400,13 @@ class AnalogStickWidget(QWidget):
         painter = QPainter(self); painter.setRenderHint(QPainter.Antialiasing)
         size = min(self.width(), self.height()); center = QPointF(self.width() / 2, self.height() / 2); radius = size / 2 * 0.9
         
-        # Draw main circle first
         border_color = QColor("#007bff") if self.is_pressed else QColor("#adadad"); bg_color = QColor("#f0f0f0")
         painter.setPen(QPen(border_color, 8 if self.is_pressed else 2)); painter.setBrush(bg_color); painter.drawEllipse(center, radius, radius)
 
-        # Draw crosshairs on top of the circle background
         painter.setPen(QPen(QColor("#cccccc"), 1))
         painter.drawLine(QPointF(center.x() - radius, center.y()), QPointF(center.x() + radius, center.y()))
         painter.drawLine(QPointF(center.x(), center.y() - radius), QPointF(center.x(), center.y() + radius))
         
-        # Draw handle on top of everything
         handle_radius = 3
         travel_radius = radius - handle_radius
         handle_pos = QPointF(center.x() + self.x * travel_radius, center.y() + self.y * travel_radius)
@@ -314,10 +416,20 @@ class GamepadWidget(QWidget):
     """게임패드 전체의 시각적 표현을 담당하는 메인 위젯."""
     def __init__(self):
         super().__init__()
-        self.button_states = {}; self.trigger_L_val = 0.0; self.trigger_R_val = 0.0
-        self.stick_L = AnalogStickWidget(); self.stick_R = AnalogStickWidget()
-        layout = QGridLayout(self); layout.setContentsMargins(0, 0, 0, 0); layout.setSpacing(0)
-        layout.setRowStretch(0, 1); layout.addWidget(self.stick_L, 1, 0); layout.addWidget(self.stick_R, 1, 1); layout.setRowStretch(1, 0)
+        self.button_states = {}
+        self.trigger_L_val = 0.0
+        self.trigger_R_val = 0.0
+        self.raw_trigger_L = 0
+        self.raw_trigger_R = 0
+        self.stick_L = AnalogStickWidget()
+        self.stick_R = AnalogStickWidget()
+        layout = QGridLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.setRowStretch(0, 1)
+        layout.addWidget(self.stick_L, 1, 0)
+        layout.addWidget(self.stick_R, 1, 1)
+        layout.setRowStretch(1, 0)
 
     def update_state(self, gp_state: XINPUT_GAMEPAD):
         """컨트롤러 상태 정보를 받아 위젯의 시각적 요소를 갱신합니다."""
@@ -325,10 +437,13 @@ class GamepadWidget(QWidget):
         self.stick_L.set_pos(normalize_stick_value(gp_state.sThumbLX), normalize_stick_value(gp_state.sThumbLY))
         self.stick_R.set_pos(normalize_stick_value(gp_state.sThumbRX), normalize_stick_value(gp_state.sThumbRY))
         self.stick_L.set_pressed(self.button_states.get("LTHUMB", False)); self.stick_R.set_pressed(self.button_states.get("RTHUMB", False))
-        self.trigger_L_val = gp_state.bLeftTrigger / 255.0; self.trigger_R_val = gp_state.bRightTrigger / 255.0
+        self.trigger_L_val = gp_state.bLeftTrigger / 255.0
+        self.trigger_R_val = gp_state.bRightTrigger / 255.0
+        self.raw_trigger_L = gp_state.bLeftTrigger
+        self.raw_trigger_R = gp_state.bRightTrigger
         self.update()
         
-    def _draw_trigger(self, painter, colors, rect, value, text):
+    def _draw_trigger(self, painter, colors, rect, value, raw_value, text):
         """트리거 버튼 하나를 그리는 헬퍼 메서드."""
         C_BORDER, C_BTN_OFF, C_BTN_ON, C_TEXT = colors
         painter.setPen(QPen(C_BORDER, 1)); painter.setBrush(C_BTN_OFF); painter.drawRoundedRect(rect, 6, 6)
@@ -336,7 +451,25 @@ class GamepadWidget(QWidget):
             fill_h = rect.height() * value
             fill_rect = QRectF(rect.x(), rect.y() + rect.height() - fill_h, rect.width(), fill_h)
             painter.setBrush(C_BTN_ON); painter.setPen(Qt.NoPen); painter.drawRoundedRect(fill_rect, 6, 6)
-        painter.setPen(C_TEXT); painter.drawText(rect, Qt.AlignTop | Qt.AlignHCenter, text)
+        
+        # LT/RT 텍스트를 상단에 표시
+        painter.setPen(C_TEXT)
+        font = painter.font()
+        font.setPointSize(10)
+        font.setBold(False)
+        painter.setFont(font)
+        painter.drawText(rect, Qt.AlignTop | Qt.AlignHCenter, text)
+
+        # Raw 아날로그 값을 중앙에 표시
+        font.setPointSize(11)
+        font.setBold(True)
+        painter.setFont(font)
+        # 가독성을 위해 텍스트에 흰색 그림자 효과 추가
+        painter.setPen(QColor(255, 255, 255, 120))
+        painter.drawText(rect.translated(1, 1), Qt.AlignCenter, str(raw_value))
+        painter.setPen(C_TEXT)
+        painter.drawText(rect, Qt.AlignCenter, str(raw_value))
+
 
     def _draw_shoulder_button(self, painter, colors, rect, is_on, text):
         """숄더 버튼 하나를 그리는 헬퍼 메서드."""
@@ -356,15 +489,18 @@ class GamepadWidget(QWidget):
         body_rect = self.rect().adjusted(10, 10, -10, -(self.stick_L.height() + 22))
         painter.drawRoundedRect(body_rect, 30, 30)
 
-        trigger_h, trigger_w = 65, 35; shoulder_h, shoulder_w = 32, w * 0.17
-        trigger_y = body_rect.y() + 15; shoulder_y = trigger_y + trigger_h + 12
+        # 버튼 크기 조정
+        trigger_h, trigger_w = 75, 35
+        shoulder_h, shoulder_w = 28, w * 0.16
+        
+        trigger_y = body_rect.y() + 15; shoulder_y = trigger_y + trigger_h + 8
         left_x_center = body_rect.x() + 85; right_x_center = body_rect.right() - 85
         
         lt_rect = QRectF(left_x_center - trigger_w / 2, trigger_y, trigger_w, trigger_h); lb_rect = QRectF(left_x_center - shoulder_w / 2, shoulder_y, shoulder_w, shoulder_h)
         rt_rect = QRectF(right_x_center - trigger_w / 2, trigger_y, trigger_w, trigger_h); rb_rect = QRectF(right_x_center - shoulder_w / 2, shoulder_y, shoulder_w, shoulder_h)
 
-        self._draw_trigger(painter, colors, lt_rect, self.trigger_L_val, "LT"); self._draw_shoulder_button(painter, colors, lb_rect, self.button_states.get("LB", False), "LB")
-        self._draw_trigger(painter, colors, rt_rect, self.trigger_R_val, "RT"); self._draw_shoulder_button(painter, colors, rb_rect, self.button_states.get("RB", False), "RB")
+        self._draw_trigger(painter, colors, lt_rect, self.trigger_L_val, self.raw_trigger_L, "LT"); self._draw_shoulder_button(painter, colors, lb_rect, self.button_states.get("LB", False), "LB")
+        self._draw_trigger(painter, colors, rt_rect, self.trigger_R_val, self.raw_trigger_R, "RT"); self._draw_shoulder_button(painter, colors, rb_rect, self.button_states.get("RB", False), "RB")
 
         def draw_face_button(x_pos, y_pos, name, text=""):
             is_on = self.button_states.get(name, False)
@@ -412,6 +548,7 @@ class MainWindow(QWidget):
         
         self._thread: Optional[PollingThread] = None; self._xi = XInput(); self._vib_on = False; self.is_measuring = False
         self.last_connection_state = [False, False, False, False]; self.device_order: List[int] = []
+        self.previous_button_states: Set[str] = set()
 
         root_layout = QHBoxLayout(self); root_layout.setContentsMargins(20, 20, 20, 20); root_layout.setSpacing(20)
         root_layout.addWidget(self._create_left_panel(), 4); root_layout.addWidget(self._create_center_panel(), 6)
@@ -425,11 +562,20 @@ class MainWindow(QWidget):
     def _create_left_panel(self) -> QWidget:
         """좌측 컨트롤 패널 UI를 생성합니다."""
         panel=QWidget(); layout=QGridLayout(panel); layout.setSpacing(15); layout.setColumnStretch(0, 1); layout.setColumnStretch(1, 1)
-        title=QLabel("폴링 및 입력 테스트"); title.setObjectName("TitleLabel"); layout.addWidget(title, 0, 0, 1, 2)
+        
+        title_layout = QHBoxLayout(); title=QLabel("폴링 및 입력 테스트"); title.setObjectName("TitleLabel"); title_layout.addWidget(title, 1)
+        layout.addLayout(title_layout, 0, 0, 1, 2)
+        
         self.status_label=QLabel("장치 연결 후 시작 버튼을 누르세요."); self.status_label.setObjectName("StatusLabel"); self.status_label.setWordWrap(True); self.status_label.setFixedHeight(35); self.status_label.setAlignment(Qt.AlignLeft | Qt.AlignTop); layout.addWidget(self.status_label, 1, 0, 1, 2)
         
-        self.btn_about = QPushButton("정보"); self.btn_about.setObjectName("InfoButton"); self.btn_about.clicked.connect(self.show_about_dialog); self.btn_about.setFixedSize(60, 28); layout.addWidget(self.btn_about, 0, 1, Qt.AlignRight | Qt.AlignTop)
-        
+        top_right_layout = QHBoxLayout()
+        self.battery_widget = BatteryWidget()
+        self.btn_about = QPushButton("정보"); self.btn_about.setObjectName("InfoButton"); self.btn_about.clicked.connect(self.show_about_dialog); self.btn_about.setFixedSize(60, 28)
+        top_right_layout.addStretch(1)
+        top_right_layout.addWidget(self.battery_widget)
+        top_right_layout.addWidget(self.btn_about)
+        title_layout.addLayout(top_right_layout)
+
         button_row_layout = QHBoxLayout()
         self.toggle_measure_button = QPushButton("측정 시작"); self.toggle_measure_button.setObjectName("StartButton"); self.toggle_measure_button.clicked.connect(self.toggle_measurement)
         self.btn_refresh = QPushButton("새로고침"); self.btn_refresh.clicked.connect(self.refresh_devices)
@@ -446,16 +592,13 @@ class MainWindow(QWidget):
 
         samples_layout = QHBoxLayout(); samples_layout.addWidget(QLabel("샘플 수:"))
         self.cmb_samples = QComboBox(); self.cmb_samples.addItems(["1000", "2000", "4000", "8000", "16000"]); self.cmb_samples.setCurrentText("4000")
-        samples_layout.addWidget(self.cmb_samples); samples_layout.addStretch(1); layout.addLayout(samples_layout, 6, 0)
+        samples_layout.addWidget(self.cmb_samples); samples_layout.addStretch(1); layout.addLayout(samples_layout, 6, 0, 1, 2)
         
-        gyro_layout = QHBoxLayout(); self.radio_standard = QRadioButton("표준 입력"); self.radio_gyro = QRadioButton("자이로 포함"); self.radio_standard.setChecked(True)
-        gyro_layout.addWidget(self.radio_standard); gyro_layout.addWidget(self.radio_gyro); gyro_layout.addStretch(1); layout.addLayout(gyro_layout, 6, 1)
-
         self.progress_bar = QProgressBar(); self.progress_bar.setValue(0); self.progress_bar.setTextVisible(True); self.progress_bar.setFormat("%p%")
         layout.addWidget(self.progress_bar, 7, 0, 1, 2)
 
         line = QFrame(); line.setFrameShape(QFrame.HLine); line.setFrameShadow(QFrame.Sunken); layout.addWidget(line, 8, 0, 1, 2)
-
+        
         vib_box=QGroupBox(""); vib_layout=QVBoxLayout(vib_box)
         self.sld_left=QSlider(Qt.Horizontal); self.sld_left.setRange(0,100); self.sld_left.setValue(50)
         self.sld_right=QSlider(Qt.Horizontal); self.sld_right.setRange(0,100); self.sld_right.setValue(50)
@@ -467,12 +610,27 @@ class MainWindow(QWidget):
         
     def _create_center_panel(self) -> QWidget:
         """중앙 게임패드 및 AXIS 값 디스플레이 패널 UI를 생성합니다."""
-        panel = QWidget(); layout = QGridLayout(panel); layout.setSpacing(10)
-        self.gamepad_widget = GamepadWidget(); layout.addWidget(self.gamepad_widget, 0, 0, 1, 2)
-        self.axis_L = AxisDisplayWidget("좌측 스틱"); self.axis_L.axis0_title.setText("AXIS 0"); self.axis_L.axis1_title.setText("AXIS 1")
-        self.axis_R = AxisDisplayWidget("우측 스틱"); self.axis_R.axis0_title.setText("AXIS 2"); self.axis_R.axis1_title.setText("AXIS 3")
-        layout.addWidget(self.axis_L, 1, 0); layout.addWidget(self.axis_R, 1, 1)
-        layout.setRowStretch(0, 1); layout.setRowStretch(1, 0); layout.setColumnStretch(0, 1); layout.setColumnStretch(1, 1)
+        panel = QWidget()
+        layout = QVBoxLayout(panel)
+        layout.setSpacing(10)
+        
+        self.history_widget = InputHistoryWidget()
+        self.gamepad_widget = GamepadWidget()
+        
+        axis_layout = QHBoxLayout()
+        self.axis_L = AxisDisplayWidget("좌측 스틱")
+        self.axis_L.axis0_title.setText("AXIS 0")
+        self.axis_L.axis1_title.setText("AXIS 1")
+        self.axis_R = AxisDisplayWidget("우측 스틱")
+        self.axis_R.axis0_title.setText("AXIS 2")
+        self.axis_R.axis1_title.setText("AXIS 3")
+        axis_layout.addWidget(self.axis_L)
+        axis_layout.addWidget(self.axis_R)
+
+        layout.addWidget(self.history_widget, 0)
+        layout.addWidget(self.gamepad_widget, 1)
+        layout.addLayout(axis_layout, 0)
+        
         return panel
 
     @Slot()
@@ -495,13 +653,42 @@ class MainWindow(QWidget):
         """타이머에 의해 주기적으로 호출되어 게임패드 UI를 최신 상태로 갱신합니다."""
         idx = self.cmb_xinput_device.currentData(Qt.UserRole)
         if idx is None: return
+        
+        self.update_battery_status(idx)
+        
         res, state = self._xi.get_state(idx)
         if res == ERROR_SUCCESS:
             gp = state.Gamepad
             self.gamepad_widget.update_state(gp)
-            # XInput 표준: Y축(sThumbLY)은 위가 양수(+), 아래가 음수(-)
             self.axis_L.update_values(normalize_stick_value(gp.sThumbLX), normalize_stick_value(gp.sThumbLY))
             self.axis_R.update_values(normalize_stick_value(gp.sThumbRX), normalize_stick_value(gp.sThumbRY))
+
+            # 입력 기록 위젯 업데이트
+            current_buttons = self.get_pressed_buttons_set(gp.wButtons)
+            newly_pressed = current_buttons - self.previous_button_states
+            for btn in sorted(list(newly_pressed)): # 정렬하여 일관된 순서로 추가
+                self.history_widget.add_event(btn)
+
+            self.previous_button_states = current_buttons
+
+    def update_battery_status(self, idx: int):
+        """주기적으로 배터리 상태를 확인하고 UI에 반영합니다."""
+        info = self._xi.get_battery_info(idx)
+        self.battery_widget.update_status(info)
+
+    def get_pressed_buttons_set(self, w_buttons: int) -> Set[str]:
+        """wButtons 값으로부터 현재 눌린 버튼 이름의 집합을 반환합니다."""
+        buttons = {
+            "DPAD_UP": XINPUT_GAMEPAD_DPAD_UP, "DPAD_DOWN": XINPUT_GAMEPAD_DPAD_DOWN,
+            "DPAD_LEFT": XINPUT_GAMEPAD_DPAD_LEFT, "DPAD_RIGHT": XINPUT_GAMEPAD_DPAD_RIGHT,
+            "START": XINPUT_GAMEPAD_START, "BACK": XINPUT_GAMEPAD_BACK,
+            "LTHUMB": XINPUT_GAMEPAD_LEFT_THUMB, "RTHUMB": XINPUT_GAMEPAD_RIGHT_THUMB,
+            "LB": XINPUT_GAMEPAD_LEFT_SHOULDER, "RB": XINPUT_GAMEPAD_RIGHT_SHOULDER,
+            "A": XINPUT_GAMEPAD_A, "B": XINPUT_GAMEPAD_B,
+            "X": XINPUT_GAMEPAD_X, "Y": XINPUT_GAMEPAD_Y
+        }
+        pressed_set = {name for name, mask in buttons.items() if (w_buttons & mask)}
+        return pressed_set
 
     @Slot()
     def toggle_measurement(self):
@@ -515,7 +702,7 @@ class MainWindow(QWidget):
         max_samples = int(self.cmb_samples.currentText())
         self.progress_bar.setMaximum(max_samples); self.progress_bar.setValue(0)
         
-        self._thread = PollingThread(self._dev_idx, max_samples, self.radio_gyro.isChecked())
+        self._thread = PollingThread(self._dev_idx, max_samples)
         self._thread.statsUpdated.connect(self.on_stats); self._thread.deviceError.connect(self.on_error); self._thread.measurementFinished.connect(self.stop_measure)
         self._thread.start()
         
@@ -624,12 +811,33 @@ class AboutDialog(QDialog):
         github_button = QPushButton("GitHub 방문"); github_button.clicked.connect(lambda: webbrowser.open("https://github.com/deuxdoom/GamePadTester")); layout.addWidget(github_button)
 
 def main():
-    if os.name != "nt": print("이 프로그램은 Windows(XInput) 전용입니다."); return
-    app = QApplication(sys.argv); app.setStyleSheet(STYLESHEET)
-    app_icon = QIcon(_load_app_pixmap()) if _load_app_pixmap() else QIcon()
-    app.setWindowIcon(app_icon)
-    w = MainWindow(); w.setWindowIcon(app_icon); w.show()
-    sys.exit(app.exec())
+    if os.name != "nt": 
+        app = QApplication(sys.argv)
+        QMessageBox.critical(None, "오류", "이 프로그램은 Windows(XInput) 전용입니다.")
+        return
+    
+    # --- 단일 인스턴스 실행 처리 ---
+    mutex_name = "GamePadTester_Mutex_2A5V3D7G"
+    kernel32 = ctypes.WinDLL('kernel32')
+    mutex_handle = kernel32.CreateMutexW(None, True, mutex_name)
+
+    if kernel32.GetLastError() == ERROR_ALREADY_EXISTS:
+        app = QApplication(sys.argv)
+        QMessageBox.warning(None, "실행 오류", "프로그램이 이미 실행 중입니다.")
+        sys.exit(1)
+
+    try:
+        app = QApplication(sys.argv); app.setStyleSheet(STYLESHEET)
+        app_icon = QIcon(_load_app_pixmap()) if _load_app_pixmap() else QIcon()
+        app.setWindowIcon(app_icon)
+        w = MainWindow(); w.setWindowIcon(app_icon); w.show()
+        sys.exit(app.exec())
+    finally:
+        # 프로그램 종료 시 뮤텍스 해제
+        if mutex_handle:
+            kernel32.ReleaseMutex(mutex_handle)
+            kernel32.CloseHandle(mutex_handle)
+
 
 if __name__ == "__main__":
     main()
