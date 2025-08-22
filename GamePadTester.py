@@ -1,5 +1,5 @@
 # GamePadTester
-# Version: 2.1.0
+# Version: 2.1.1
 
 from __future__ import annotations
 import sys
@@ -30,7 +30,7 @@ import ctypes
 from ctypes import wintypes
 
 # ----- 버전 정보 -----
-VERSION = "2.1.0"
+VERSION = "2.1.1"
 
 # ----- 아이콘 데이터 -----
 # Base64로 인코딩된 64x64 PNG 아이콘 데이터를 여기에 직접 입력합니다.
@@ -165,10 +165,11 @@ class PollingThread(QThread):
     deviceError = Signal(str)
     measurementFinished = Signal()
 
-    def __init__(self, device_index: int, max_samples: int = 1000):
+    def __init__(self, device_index: int, max_samples: int = 1000, include_gyro: bool = False):
         super().__init__()
         self.device_index = device_index
         self.max_samples = max(20, int(max_samples))
+        self.include_gyro = include_gyro
         self._stop = threading.Event()
         self.xi = XInput()
         self._lock = threading.Lock() # 스레드 간 데이터 공유를 위한 Lock
@@ -193,8 +194,18 @@ class PollingThread(QThread):
             now_ns = time.perf_counter_ns()
 
             if current_state.dwPacketNumber != self._last_state.dwPacketNumber:
-                gamepad_changed = (ctypes.string_at(ctypes.byref(current_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)) != ctypes.string_at(ctypes.byref(self._last_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)))
-                if gamepad_changed:
+                
+                should_record = False
+                if self.include_gyro:
+                    # 자이로(모션) 모드: 모든 패킷 변화를 측정
+                    should_record = True
+                else:
+                    # 표준 모드: 데드존 없이 모든 게임패드 입력값의 변화를 측정
+                    gamepad_changed = (ctypes.string_at(ctypes.byref(current_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)) != ctypes.string_at(ctypes.byref(self._last_state.Gamepad), ctypes.sizeof(XINPUT_GAMEPAD)))
+                    if gamepad_changed:
+                        should_record = True
+
+                if should_record:
                     dt = now_ns - self._last_change_ts_ns
                     if dt > 1000:
                         with self._lock: 
@@ -205,6 +216,7 @@ class PollingThread(QThread):
                                 self.measurementFinished.emit()
                                 break
                     self._last_change_ts_ns = now_ns
+
                 self._last_state = current_state
             
             if now_ns - last_report_time_ns >= 50_000_000:
@@ -561,7 +573,7 @@ class MainWindow(QWidget):
 
     def _create_left_panel(self) -> QWidget:
         """좌측 컨트롤 패널 UI를 생성합니다."""
-        panel=QWidget(); layout=QGridLayout(panel); layout.setSpacing(15); layout.setColumnStretch(0, 1); layout.setColumnStretch(1, 1)
+        panel=QWidget(); layout=QGridLayout(panel); layout.setSpacing(15);
         
         title_layout = QHBoxLayout(); title=QLabel("폴링 및 입력 테스트"); title.setObjectName("TitleLabel"); title_layout.addWidget(title, 1)
         layout.addLayout(title_layout, 0, 0, 1, 2)
@@ -590,9 +602,19 @@ class MainWindow(QWidget):
         layout.addWidget(self.stats["mean_hz"], 4, 0); layout.addWidget(self.stats["median_hz"], 4, 1)
         layout.addWidget(self.stats["mean_ms"], 5, 0); layout.addWidget(self.stats["stability_pct"], 5, 1)
 
+        # 샘플 수 및 폴링 모드 선택을 위한 레이아웃 (UI 잘림 문제 해결)
+        row6_layout = QHBoxLayout()
         samples_layout = QHBoxLayout(); samples_layout.addWidget(QLabel("샘플 수:"))
         self.cmb_samples = QComboBox(); self.cmb_samples.addItems(["1000", "2000", "4000", "8000", "16000"]); self.cmb_samples.setCurrentText("4000")
-        samples_layout.addWidget(self.cmb_samples); samples_layout.addStretch(1); layout.addLayout(samples_layout, 6, 0, 1, 2)
+        samples_layout.addWidget(self.cmb_samples);
+        
+        gyro_layout = QHBoxLayout(); self.radio_standard = QRadioButton("표준"); self.radio_gyro = QRadioButton("자이로/모션"); self.radio_standard.setChecked(True)
+        gyro_layout.addWidget(self.radio_standard); gyro_layout.addWidget(self.radio_gyro)
+        
+        row6_layout.addLayout(samples_layout)
+        row6_layout.addStretch(1)
+        row6_layout.addLayout(gyro_layout)
+        layout.addLayout(row6_layout, 6, 0, 1, 2)
         
         self.progress_bar = QProgressBar(); self.progress_bar.setValue(0); self.progress_bar.setTextVisible(True); self.progress_bar.setFormat("%p%")
         layout.addWidget(self.progress_bar, 7, 0, 1, 2)
@@ -702,7 +724,7 @@ class MainWindow(QWidget):
         max_samples = int(self.cmb_samples.currentText())
         self.progress_bar.setMaximum(max_samples); self.progress_bar.setValue(0)
         
-        self._thread = PollingThread(self._dev_idx, max_samples)
+        self._thread = PollingThread(self._dev_idx, max_samples, self.radio_gyro.isChecked())
         self._thread.statsUpdated.connect(self.on_stats); self._thread.deviceError.connect(self.on_error); self._thread.measurementFinished.connect(self.stop_measure)
         self._thread.start()
         
