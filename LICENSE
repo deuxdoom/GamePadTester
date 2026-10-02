@@ -1,0 +1,110 @@
+GamePadTester 프리웨어 라이선스 / GamePadTester Freeware License
+
+Copyright (c) 2025-2026 deuxdoom. All rights reserved.
+
+==============================================================================
+한국어
+==============================================================================
+
+1. 적용 범위
+   이 라이선스는 2026년 10월 6일부터 배포하는 GamePadTester 3.2.1 이후 버전의
+   실행 파일과 함께 제공되는 파일(이하 "소프트웨어"), 그리고 이 저장소의 문서·이미지·
+   소개 페이지에 적용됩니다. 그 전에 배포한 버전은 배포 당시 함께 제공한 라이선스를
+   따릅니다.
+
+2. 허용하는 사용
+   누구나 공식 배포처(https://github.com/deuxdoom/GamePadTester/releases)에서
+   소프트웨어를 무료로 내려받아 개인적·업무적 목적으로 설치하고 사용할 수 있습니다.
+   공식 배포처나 소개 페이지(https://deuxdoom.github.io/GamePadTester/)로 연결하는
+   링크는 자유롭게 공유할 수 있습니다.
+
+3. 금지하는 행위
+   저작권자의 사전 서면 허락 없이 다음 행위를 할 수 없습니다.
+   (1) 소프트웨어를 수정·번역·개작하거나 이를 바탕으로 2차적 저작물을 만드는 행위
+   (2) 소프트웨어를 디컴파일·역어셈블·역설계하는 행위. 다만 관련 법률이 명시적으로
+       허용하는 범위는 제외합니다.
+   (3) 소프트웨어를 재배포·판매·대여·재라이선스하거나, 다른 웹사이트·저장소·서비스에
+       올려 내려받게 하는 행위
+   (4) 저작권 표시·라이선스 표시·앱 정보를 제거하거나 바꾸는 행위
+   (5) 소프트웨어나 그 일부를 자신의 저작물인 것처럼 표시하는 행위
+
+4. 제3자 구성 요소
+   소프트웨어에는 각자의 라이선스를 따르는 제3자 구성 요소가 들어 있습니다.
+   SDL 3(zlib), Qt for Python(LGPL v3), libusb(LGPL 2.1), Pretendard·JetBrains
+   Mono(SIL OFL 1.1), Fluent UI System Icons·GitHub Octicons(MIT), HIDUSBF(Public
+   Domain). 이 라이선스는 제3자 구성 요소의 라이선스가 부여하는 권리를 제한하지
+   않습니다. 특히 LGPL이 적용되는 구성 요소는 해당 라이선스에 따라 교체·수정할 수
+   있으며, 그 수정을 디버깅하기 위한 역설계도 허용됩니다.
+
+5. 보증의 부인
+   소프트웨어는 "있는 그대로" 제공되며, 상품성·특정 목적 적합성·권리 비침해를 포함한
+   어떠한 명시적·묵시적 보증도 하지 않습니다.
+
+6. 책임의 제한
+   저작권자는 소프트웨어의 사용 또는 사용 불능으로 생긴 어떠한 손해에 대해서도 책임을
+   지지 않습니다. 여기에는 장치 설정이나 드라이버를 바꾸는 기능(OverClock 등)을 사용해
+   생긴 손해도 포함됩니다.
+
+7. 권한의 종료
+   이 라이선스의 조건을 위반하면 소프트웨어를 사용할 권한이 자동으로 끝납니다. 이때
+   보유한 소프트웨어의 사본을 모두 삭제해야 합니다.
+
+8. 언어
+   한국어판과 영어판의 내용이 서로 다르면 한국어판을 따릅니다.
+
+==============================================================================
+English
+==============================================================================
+
+1. Scope
+   This license applies to GamePadTester version 3.2.1 and later, distributed
+   on or after October 6, 2026, together with the files provided with the
+   executable (the "Software"), and to the documents, images and website in
+   this repository. Versions distributed before that date remain under the
+   license that accompanied them.
+
+2. Permitted use
+   Anyone may download the Software free of charge from the official
+   distribution page (https://github.com/deuxdoom/GamePadTester/releases) and
+   install and use it for personal or business purposes. You may freely share
+   links to the official distribution page or the website
+   (https://deuxdoom.github.io/GamePadTester/).
+
+3. Restrictions
+   Without the copyright holder's prior written permission, you may not:
+   (1) modify, translate or adapt the Software, or create derivative works
+       based on it;
+   (2) decompile, disassemble or reverse engineer the Software, except to the
+       extent expressly permitted by applicable law;
+   (3) redistribute, sell, rent or sublicense the Software, or upload it to
+       other websites, repositories or services for download;
+   (4) remove or alter any copyright notice, license notice or app
+       information;
+   (5) present the Software or any part of it as your own work.
+
+4. Third-party components
+   The Software includes third-party components that remain under their own
+   licenses: SDL 3 (zlib), Qt for Python (LGPL v3), libusb (LGPL 2.1),
+   Pretendard and JetBrains Mono (SIL OFL 1.1), Fluent UI System Icons and
+   GitHub Octicons (MIT), and HIDUSBF (Public Domain). Nothing in this license
+   limits the rights granted by those licenses. In particular, components
+   under the LGPL may be replaced or modified as that license allows, and
+   reverse engineering for debugging such modifications is permitted.
+
+5. Disclaimer of warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+6. Limitation of liability
+   IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY DAMAGES ARISING
+   FROM THE USE OF OR INABILITY TO USE THE SOFTWARE, INCLUDING DAMAGES CAUSED
+   BY FEATURES THAT CHANGE DEVICE SETTINGS OR DRIVERS (SUCH AS OVERCLOCK).
+
+7. Termination
+   Your right to use the Software ends automatically if you breach any term
+   of this license. You must then delete all copies of the Software in your
+   possession.
+
+8. Language
+   If the Korean and English versions differ, the Korean version prevails.
