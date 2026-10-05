@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GamePadTester · 스틱 원형도와 폴링레이트를 재는 게임패드 테스터</title>
+  <meta name="description" content="Windows용 무료 게임패드 테스터. 스틱 원형도와 폴링레이트를 원시 값 그대로 재고, 결과를 이미지 한 장으로 저장합니다. Xbox·DualSense·ProCon 2 지원, Gamepadla 비교, SHA-256 자동 업데이트.">
+  <meta name="theme-color" content="#0B0F16" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#EEF2F7" media="(prefers-color-scheme: light)">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GamePadTester">
+  <meta property="og:description" content="스틱 원형도와 폴링레이트를 제대로 재는 Windows 게임패드 테스터">
+  <meta property="og:image" content="https://deuxdoom.github.io/GamePadTester/images/social-preview.png?v=c132dbed9e6f">
+  <meta property="og:url" content="https://deuxdoom.github.io/GamePadTester/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="images/icon.png" type="image/png">
+  <link rel="preload" href="fonts/gpt-site-sans.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="site.css?v=875491fa94c7">
+  <script>
+    // 첫 화면이 깜빡이지 않도록 저장해 둔 테마를 먼저 입힌다(저장소를 쓸 수 없으면 시스템 설정을 따른다).
+    (function () {
+      var theme = new URLSearchParams(location.search).get("theme");   // 공유용 주소: ?theme=light
+      if (theme !== "dark" && theme !== "light") {
+        try { theme = localStorage.getItem("gpt-theme"); } catch (error) { theme = null; }
+      }
+      if (theme !== "dark" && theme !== "light") {
+        theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      }
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <script src="i18n.js?v=6e58900a7636" defer></script>
+  <script src="pads.js?v=ab005b30f735" defer></script>
+  <script src="site.js?v=ea355025038b" defer></script>
+</head>
+<body>
+<!-- ICONS:START -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-arrow_download" viewBox="0 0 20 20"><path d="M15.5 16.9997C15.7761 16.9997 16 17.2236 16 17.4997C16 17.7452 15.8231 17.9494 15.5899 17.9917L15.5 17.9997H4.5C4.22386 17.9997 4 17.7759 4 17.4997C4 17.2543 4.17688 17.0501 4.41012 17.0078L4.5 16.9997H15.5ZM10.0001 2.00195C10.2456 2.00195 10.4497 2.17896 10.492 2.41222L10.5 2.5021L10.496 14.296L14.1414 10.6476C14.3148 10.4739 14.5842 10.4544 14.7792 10.5892L14.8485 10.647C15.0222 10.8204 15.0418 11.0898 14.907 11.2848L14.8492 11.3541L10.3574 15.8541C10.285 15.9267 10.1957 15.9724 10.1021 15.9911L9.99608 16.0008C9.83511 16.0008 9.69192 15.9247 9.60051 15.8065L5.14386 11.3547C4.94846 11.1595 4.94823 10.8429 5.14336 10.6475C5.3168 10.4739 5.58621 10.4544 5.78117 10.5892L5.85046 10.647L9.496 14.288L9.5 2.50181C9.50008 2.22567 9.724 2.00195 10.0001 2.00195Z" /></symbol><symbol id="i-braces" viewBox="0 0 20 20"><path d="M6.5 3C5.11929 3 4 4.11929 4 5.5V8.38197C4 8.87472 3.72331 9.32545 3.28459 9.54865C3.11627 9.62913 3 9.80099 3 10C3 10.199 3.11627 10.3709 3.28459 10.4513C3.72331 10.6745 4 11.1253 4 11.618V14.5C4 15.8807 5.11929 17 6.5 17C6.77614 17 7 16.7761 7 16.5C7 16.2239 6.77614 16 6.5 16C5.67157 16 5 15.3284 5 14.5V11.618C5 11.0029 4.75555 10.4249 4.33834 10C4.75556 9.57511 5 8.9971 5 8.38197V5.5C5 4.67157 5.67157 4 6.5 4C6.77614 4 7 3.77614 7 3.5C7 3.22386 6.77614 3 6.5 3ZM13.5 3C14.8807 3 16 4.11929 16 5.5V8.38197C16 8.87472 16.2767 9.32545 16.7154 9.54865C16.8837 9.62913 17 9.80099 17 10C17 10.199 16.8837 10.3709 16.7154 10.4513C16.2767 10.6745 16 11.1253 16 11.618V14.5C16 15.8807 14.8807 17 13.5 17C13.2239 17 13 16.7761 13 16.5C13 16.2239 13.2239 16 13.5 16C14.3284 16 15 15.3284 15 14.5V11.618C15 11.0029 15.2444 10.4249 15.6617 10C15.2444 9.57511 15 8.9971 15 8.38197V5.5C15 4.67157 14.3284 4 13.5 4C13.2239 4 13 3.77614 13 3.5C13 3.22386 13.2239 3 13.5 3Z" /></symbol><symbol id="i-copy" viewBox="0 0 20 20"><path d="M7 7H5.5C4.67157 7 4 7.67157 4 8.5V14.5C4 15.3284 4.67157 16 5.5 16H9.5C10.1529 16 10.707 15.5823 10.9131 15H11.9502C11.7186 16.1411 10.7095 17 9.5 17H5.5C4.11929 17 3 15.8807 3 14.5V8.5C3 7.11929 4.11929 6 5.5 6H7V7ZM14.5 3C15.8807 3 17 4.11929 17 5.5V11.5C17 12.8807 15.8807 14 14.5 14H10.5C9.11929 14 8 12.8807 8 11.5V5.5C8 4.11929 9.11929 3 10.5 3H14.5ZM10.5 4C9.67157 4 9 4.67157 9 5.5V11.5C9 12.3284 9.67157 13 10.5 13H14.5C15.3284 13 16 12.3284 16 11.5V5.5C16 4.67157 15.3284 4 14.5 4H10.5Z" /></symbol><symbol id="i-cube_rotate" viewBox="0 0 20 20"><path d="M8.95235 3.53479C9.61709 3.22799 10.3829 3.22799 11.0476 3.53479L15.7095 5.68643C15.8866 5.76815 16 5.94538 16 6.14041V8.00061H17V6.14041C17 5.55533 16.6598 5.02365 16.1286 4.77847L11.4667 2.62683C10.5361 2.19731 9.46393 2.19731 8.5333 2.62683L3.87141 4.77847C3.34019 5.02365 3 5.55533 3 6.14041V8.00061H4L4 6.14041C4 5.94538 4.1134 5.76815 4.29047 5.68643L8.95235 3.53479ZM3.39872 11.0006C3.58077 11.1505 3.7811 11.2966 4 11.438C4.05121 11.4711 4.10344 11.5039 4.15669 11.5364C5.6041 12.421 7.66726 13.0006 9.9992 13.0006C12.3311 13.0006 14.3943 12.421 15.8417 11.5364C15.8955 11.5036 15.9483 11.4704 16 11.437C16.2183 11.2959 16.4181 11.1501 16.5997 11.0006C16.7447 10.8813 16.878 10.7595 17 10.6359C17.2046 10.4286 17.377 10.216 17.5179 10.0006H16.0002C16.0002 10.0006 16.0001 10.0006 16.0002 10.0006C15.7241 10.0005 15.5002 9.7767 15.5002 9.50061C15.5002 9.22447 15.724 9.00061 16.0002 9.00061H18.5002C18.6328 9.00061 18.7599 9.05329 18.8537 9.14706C18.9475 9.24083 19.0002 9.368 19.0002 9.50061V12.0006C19.0002 12.2767 18.7763 12.5006 18.5002 12.5006C18.224 12.5006 18.0002 12.2767 18.0002 12.0006V11.0217C17.7185 11.3549 17.3827 11.6682 17 11.9573C16.8002 12.1082 16.5876 12.2526 16.3632 12.3897C16.2453 12.4617 16.1242 12.5318 16 12.5997C14.4076 13.4709 12.3046 14.0006 9.9992 14.0006C7.69452 14.0006 5.59217 13.4713 4 12.6006C3.87523 12.5324 3.75359 12.4621 3.63524 12.3897C3.41142 12.253 3.19935 12.109 3 11.9585C2.61739 11.6696 2.2817 11.3566 2 11.0238V12.0006C2 12.2767 1.77614 12.5006 1.5 12.5006C1.22386 12.5006 1 12.2767 1 12.0006V9.50061C1 9.368 1.05268 9.24083 1.14645 9.14706C1.24021 9.05329 1.36739 9.00061 1.5 9.00061H4C4.27614 9.00061 4.5 9.22447 4.5 9.50061C4.5 9.77675 4.27614 10.0006 4 10.0006H2.48054C2.62181 10.2166 2.79473 10.4297 3 10.6375C3.12152 10.7606 3.25437 10.8818 3.39872 11.0006ZM4 13.7247V13.8607C4 14.0558 4.1134 14.233 4.29047 14.3147L8.95235 16.4664C9.61709 16.7732 10.3829 16.7732 11.0476 16.4664L15.7095 14.3147C15.8866 14.233 16 14.0558 16 13.8607V13.7239C16.3511 13.5549 16.6852 13.3707 17 13.172V13.8607C17 14.4458 16.6598 14.9775 16.1286 15.2227L11.4667 17.3743C10.5361 17.8038 9.46393 17.8038 8.5333 17.3743L3.87141 15.2227C3.34019 14.9775 3 14.4458 3 13.8607V13.173C3.31477 13.3716 3.64893 13.5558 4 13.7247ZM6.04031 6.80366C6.14909 6.54984 6.44303 6.43227 6.69684 6.54104L9.99988 7.95663L13.3029 6.54104C13.5567 6.43227 13.8507 6.54984 13.9595 6.80366C14.0682 7.05747 13.9507 7.35141 13.6968 7.46019L10.4999 8.83031V11.0006C10.4999 11.2768 10.276 11.5006 9.99988 11.5006C9.72374 11.5006 9.49988 11.2768 9.49988 11.0006V8.83031L6.30292 7.46019C6.04911 7.35141 5.93153 7.05747 6.04031 6.80366Z" /></symbol><symbol id="i-database" viewBox="0 0 20 20"><path d="M4 5C4 3.993 4.87513 3.24472 5.90401 2.77705C6.97802 2.28886 8.42664 2 10 2C11.5734 2 13.022 2.28886 14.096 2.77705C15.1249 3.24472 16 3.993 16 5V15C16 16.007 15.1249 16.7553 14.096 17.2229C13.022 17.7111 11.5734 18 10 18C8.42664 18 6.97802 17.7111 5.90401 17.2229C4.87513 16.7553 4 16.007 4 15V5ZM5 5C5 5.37372 5.35608 5.87543 6.31781 6.31258C7.23441 6.72922 8.53579 7 10 7C11.4642 7 12.7656 6.72922 13.6822 6.31258C14.6439 5.87543 15 5.37372 15 5C15 4.62628 14.6439 4.12457 13.6822 3.68742C12.7656 3.27078 11.4642 3 10 3C8.53579 3 7.23441 3.27078 6.31781 3.68742C5.35608 4.12457 5 4.62628 5 5ZM15 6.69813C14.729 6.90046 14.4201 7.07563 14.096 7.22295C13.022 7.71114 11.5734 8 10 8C8.42664 8 6.97802 7.71114 5.90401 7.22295C5.5799 7.07563 5.27105 6.90046 5 6.69813V15C5 15.3737 5.35608 15.8754 6.31781 16.3126C7.23441 16.7292 8.53579 17 10 17C11.4642 17 12.7656 16.7292 13.6822 16.3126C14.6439 15.8754 15 15.3737 15 15V6.69813Z" /></symbol><symbol id="i-dismiss" viewBox="0 0 20 20"><path d="M4.08859 4.21569L4.14645 4.14645C4.32001 3.97288 4.58944 3.9536 4.78431 4.08859L4.85355 4.14645L10 9.293L15.1464 4.14645C15.32 3.97288 15.5894 3.9536 15.7843 4.08859L15.8536 4.14645C16.0271 4.32001 16.0464 4.58944 15.9114 4.78431L15.8536 4.85355L10.707 10L15.8536 15.1464C16.0271 15.32 16.0464 15.5894 15.9114 15.7843L15.8536 15.8536C15.68 16.0271 15.4106 16.0464 15.2157 15.9114L15.1464 15.8536L10 10.707L4.85355 15.8536C4.67999 16.0271 4.41056 16.0464 4.21569 15.9114L4.14645 15.8536C3.97288 15.68 3.9536 15.4106 4.08859 15.2157L4.14645 15.1464L9.293 10L4.14645 4.85355C3.97288 4.67999 3.9536 4.41056 4.08859 4.21569L4.14645 4.14645L4.08859 4.21569Z" /></symbol><symbol id="i-flash" viewBox="0 0 20 20"><path d="M6.19079 2.77054C6.3211 2.31445 6.73797 2 7.21231 2H12.4614C13.1865 2 13.6986 2.71043 13.4693 3.39836L13.4668 3.40584L13.4667 3.40582L12.2053 7H14.7691C15.7155 7 16.1764 8.1436 15.5356 8.81137L15.532 8.81508L15.532 8.81506L6.85551 17.6726C6.10113 18.4551 4.79636 17.7329 5.06026 16.6773L6.22998 11.9984H4.96271C4.25687 11.9984 3.74727 11.3228 3.94118 10.6442L6.19079 2.77054ZM7.21231 3C7.18445 3 7.15996 3.01847 7.15231 3.04526L4.90271 10.9189C4.89132 10.9587 4.92125 10.9984 4.96271 10.9984H6.87037C7.02434 10.9984 7.16972 11.0694 7.26447 11.1907C7.35923 11.3121 7.39279 11.4703 7.35544 11.6197L6.03041 16.9198C6.02649 16.9355 6.02679 16.9448 6.02721 16.949C6.02765 16.9534 6.02868 16.9568 6.03027 16.9601C6.03383 16.9676 6.04314 16.9798 6.06076 16.9896C6.07838 16.9993 6.09368 17.0007 6.10191 16.9997C6.10557 16.9993 6.109 16.9984 6.11295 16.9964C6.11674 16.9945 6.12478 16.9898 6.13597 16.9782L6.13952 16.9745L6.13954 16.9745L14.8151 8.11787C14.8273 8.10484 14.8305 8.09481 14.8318 8.0864C14.8336 8.07504 14.8325 8.05898 14.8253 8.04178C14.8181 8.0246 14.8079 8.01365 14.8002 8.00817C14.7949 8.00438 14.7869 8 14.7691 8H11.5C11.3378 8 11.1858 7.9214 11.092 7.78915C10.9983 7.65689 10.9745 7.48739 11.0282 7.33443L12.5212 3.08022C12.5331 3.04042 12.5033 3 12.4614 3H7.21231Z" /></symbol><symbol id="i-games" viewBox="0 0 20 20"><path d="M6 7.5C6 7.22386 6.22386 7 6.5 7C6.77614 7 7 7.22386 7 7.5V9H8.5C8.77614 9 9 9.22386 9 9.5C9 9.77614 8.77614 10 8.5 10H7V11.5C7 11.7761 6.77614 12 6.5 12C6.22386 12 6 11.7761 6 11.5V10H4.5C4.22386 10 4 9.77614 4 9.5C4 9.22386 4.22386 9 4.5 9H6V7.5ZM15 8C15 8.55228 14.5523 9 14 9C13.4477 9 13 8.55228 13 8C13 7.44772 13.4477 7 14 7C14.5523 7 15 7.44772 15 8ZM12 12C12.5523 12 13 11.5523 13 11C13 10.4477 12.5523 10 12 10C11.4477 10 11 10.4477 11 11C11 11.5523 11.4477 12 12 12ZM2 9.5C2 6.46243 4.46243 4 7.5 4H12.5C15.5376 4 18 6.46243 18 9.5C18 12.5376 15.5376 15 12.5 15H7.5C4.46243 15 2 12.5376 2 9.5ZM7.5 5C5.01472 5 3 7.01472 3 9.5C3 11.9853 5.01472 14 7.5 14H12.5C14.9853 14 17 11.9853 17 9.5C17 7.01472 14.9853 5 12.5 5H7.5Z" /></symbol><symbol id="i-image" viewBox="0 0 20 20"><path d="M14 7.5C14 8.32843 13.3284 9 12.5 9C11.6716 9 11 8.32843 11 7.5C11 6.67157 11.6716 6 12.5 6C13.3284 6 14 6.67157 14 7.5ZM13 7.5C13 7.22386 12.7761 7 12.5 7C12.2239 7 12 7.22386 12 7.5C12 7.77614 12.2239 8 12.5 8C12.7761 8 13 7.77614 13 7.5ZM3 6C3 4.34315 4.34315 3 6 3H14C15.6569 3 17 4.34315 17 6V14C17 15.6569 15.6569 17 14 17H6C4.34315 17 3 15.6569 3 14V6ZM6 4C4.89543 4 4 4.89543 4 6V14C4 14.3726 4.10191 14.7215 4.27937 15.0201L8.94868 10.432C9.53227 9.85859 10.4677 9.85859 11.0513 10.432L15.7206 15.0201C15.8981 14.7215 16 14.3726 16 14V6C16 4.89543 15.1046 4 14 4H6ZM6 16H14C14.3692 16 14.7149 15.9 15.0118 15.7256L10.3504 11.1453C10.1559 10.9542 9.84409 10.9542 9.64956 11.1453L4.98824 15.7256C5.28505 15.9 5.63085 16 6 16Z" /></symbol><symbol id="i-local_language" viewBox="0 0 20 20"><path d="M9.49927 1.99609C9.22313 1.99609 8.99927 2.21995 8.99927 2.49609C8.99927 2.77224 9.22312 2.99609 9.49927 2.99609L13.0001 2.9961V4.86451C13.0001 6.0307 11.8315 6.99976 10.5001 6.99976C10.224 6.99976 10.0001 7.22361 10.0001 7.49976C10.0001 7.7759 10.224 7.99976 10.5001 7.99976C12.2095 7.99976 14.0001 6.7425 14.0001 4.86451V2.4961C14.0001 2.21996 13.7763 1.9961 13.5001 1.9961L9.49927 1.99609ZM7.9617 5.30749C7.88408 5.12114 7.70203 4.99975 7.50017 4.99973C7.2983 4.99972 7.11623 5.12109 7.03859 5.30743L2.03859 17.3074C1.93238 17.5623 2.05292 17.8551 2.30782 17.9613C2.56272 18.0675 2.85546 17.9469 2.96167 17.692L4.49881 14.0029H10.5001L12.0386 17.6967C12.1447 17.9516 12.4375 18.0722 12.6924 17.966C12.9473 17.8599 13.0679 17.5671 12.9617 17.3122L11.2995 13.3214C11.2967 13.3143 11.2938 13.3073 11.2907 13.3003L7.9617 5.30749ZM10.0836 13.0029H4.91547L7.50004 6.79995L10.0836 13.0029ZM15.5013 1.99613C15.7775 1.99613 16.0013 2.21999 16.0013 2.49613V6.00144H17.4999C17.776 6.00144 17.9999 6.2253 17.9999 6.50144C17.9999 6.77758 17.776 7.00144 17.4999 7.00144H16.0013V13.4961C16.0013 13.7723 15.7775 13.9961 15.5013 13.9961C15.2252 13.9961 15.0013 13.7723 15.0013 13.4961V2.49613C15.0013 2.21999 15.2252 1.99613 15.5013 1.99613Z" /></symbol><symbol id="i-phone_vibrate" viewBox="0 0 20 20"><path d="M8.50005 14.5C8.22391 14.5 8.00005 14.7239 8.00005 15C8.00005 15.2761 8.22391 15.5 8.50005 15.5H11.5001C11.7762 15.5 12.0001 15.2761 12.0001 15C12.0001 14.7239 11.7762 14.5 11.5001 14.5H8.50005ZM7.00005 2C5.89548 2 5.00005 2.89543 5.00005 4V16C5.00005 17.1046 5.89548 18 7.00005 18H13.0001C14.1046 18 15.0001 17.1046 15.0001 16V4C15.0001 2.89543 14.1046 2 13.0001 2H7.00005ZM6.00005 4C6.00005 3.44772 6.44777 3 7.00005 3H13.0001C13.5523 3 14.0001 3.44772 14.0001 4V16C14.0001 16.5523 13.5523 17 13.0001 17H7.00005C6.44777 17 6.00005 16.5523 6.00005 16V4ZM2.91608 7.22265C2.7629 6.99289 2.45247 6.9308 2.2227 7.08397C1.99294 7.23715 1.93085 7.54759 2.08403 7.77735L2.46385 8.34709C2.74783 8.77305 2.78178 9.3185 2.55284 9.77639C2.16341 10.5553 2.22117 11.4831 2.7042 12.2076L3.08403 12.7773C3.2372 13.0071 3.54764 13.0692 3.7774 12.916C4.00717 12.7628 4.06925 12.4524 3.91608 12.2227L3.53625 11.6529C3.25228 11.227 3.21832 10.6815 3.44727 10.2236C3.8367 9.44475 3.77893 8.51693 3.2959 7.79239L2.91608 7.22265ZM16.2227 7.08397C16.4525 6.9308 16.7629 6.99289 16.9161 7.22265L17.2959 7.79239C17.7789 8.51693 17.8367 9.44475 17.4473 10.2236C17.2183 10.6815 17.2523 11.227 17.5363 11.6529L17.9161 12.2227C18.0693 12.4524 18.0072 12.7628 17.7774 12.916C17.5476 13.0692 17.2372 13.0071 17.084 12.7773L16.7042 12.2076C16.2212 11.4831 16.1634 10.5553 16.5528 9.77639C16.7818 9.3185 16.7478 8.77305 16.4639 8.34709L16.084 7.77735C15.9309 7.54759 15.9929 7.23715 16.2227 7.08397Z" /></symbol><symbol id="i-pulse" viewBox="0 0 20 20"><path d="M7.00383 3.00001C7.22848 3.00173 7.4244 3.15308 7.48281 3.37001L10.526 14.6733L13.0211 6.35633C13.0828 6.15078 13.2687 6.0075 13.4832 6.00028C13.6976 5.99306 13.8928 6.12351 13.9682 6.32444L15.3465 10H17.5C17.7761 10 18 10.2239 18 10.5C18 10.7761 17.7761 11 17.5 11H15C14.7916 11 14.605 10.8707 14.5318 10.6756L13.5527 8.06447L10.9789 16.6437C10.9147 16.8577 10.7163 17.0031 10.4929 16.9999C10.2695 16.9968 10.0753 16.8457 10.0172 16.63L6.98569 5.37012L5.48076 10.6374C5.41943 10.852 5.22324 11 5 11H2.5C2.22386 11 2 10.7761 2 10.5C2 10.2239 2.22386 10 2.5 10H4.62285L6.51924 3.36264C6.58096 3.14662 6.77917 2.9983 7.00383 3.00001Z" /></symbol><symbol id="i-ruler" viewBox="0 0 20 20"><path d="M12.5 2C13.3284 2 14 2.67157 14 3.5V16.5C14 17.3284 13.3284 18 12.5 18H7.5C6.67157 18 6 17.3284 6 16.5V3.5C6 2.67157 6.67157 2 7.5 2H12.5ZM7.5 3C7.22386 3 7 3.22386 7 3.5V4.5H9.5C9.77614 4.5 10 4.72386 10 5C10 5.27614 9.77614 5.5 9.5 5.5H7V7H10.5C10.7761 7 11 7.22386 11 7.5C11 7.77614 10.7761 8 10.5 8H7V9.5H9.5C9.77614 9.5 10 9.72386 10 10C10 10.2761 9.77614 10.5 9.5 10.5H7V12.0039H10.5C10.7761 12.0039 11 12.2278 11 12.5039C11 12.78 10.7761 13.0039 10.5 13.0039H7V14.5H9.5C9.77614 14.5 10 14.7239 10 15C10 15.2761 9.77614 15.5 9.5 15.5H7V16.5C7 16.7761 7.22386 17 7.5 17H12.5C12.7761 17 13 16.7761 13 16.5V3.5C13 3.22386 12.7761 3 12.5 3H7.5Z" /></symbol><symbol id="i-tap_single" viewBox="0 0 20 20"><path d="M6 8.5C6 6.567 7.567 5 9.5 5C11.433 5 13 6.567 13 8.5C13 8.5538 12.9988 8.60732 12.9964 8.66053L13.9878 8.83415C13.9959 8.72382 14 8.61239 14 8.5C14 6.01472 11.9853 4 9.5 4C7.01472 4 5 6.01472 5 8.5C5 9.14816 5.13704 9.76432 5.38371 10.3211C5.69168 10.2407 6.00697 10.1976 6.3236 10.1883C6.35991 10.1872 6.39615 10.1866 6.43231 10.1864C6.15677 9.68619 6 9.1114 6 8.5ZM9.50008 6C8.67165 6 8.00008 6.67157 8.00008 7.5V11.7514C7.41585 11.5535 6.75697 11.4355 6.1338 11.5029C5.67599 11.5524 5.2185 11.7045 4.83277 12.0185C4.44348 12.3354 4.16238 12.7889 4.01493 13.3787C3.97994 13.5187 4.00712 13.667 4.08949 13.7854C4.17186 13.9039 4.30138 13.981 4.44479 13.9969C7.0367 14.2849 8.35942 15.6976 8.99752 16.7248C9.47714 17.4969 10.4079 18.1322 11.4333 17.9539L12.9502 17.6901C13.8288 17.5373 14.5594 16.9281 14.8677 16.0912L15.8514 13.4209C16.3904 11.9576 15.4728 10.3632 13.9367 10.0942L11.0001 9.57995V7.5C11.0001 6.67157 10.3285 6 9.50008 6ZM9.00008 7.5C9.00008 7.22386 9.22394 7 9.50008 7C9.77622 7 10.0001 7.22386 10.0001 7.5V10C10.0001 10.2429 10.1746 10.4506 10.4138 10.4925L13.7642 11.0792C14.6859 11.2406 15.2364 12.1972 14.913 13.0752L13.9293 15.7456C13.7444 16.2477 13.306 16.6132 12.7788 16.7049L11.262 16.9687C10.7603 17.0559 10.1852 16.7417 9.84696 16.1971C9.14606 15.0688 7.75344 13.5766 5.1983 13.0985C5.27796 12.971 5.36851 12.8718 5.46413 12.794C5.66696 12.6289 5.92824 12.5309 6.24128 12.4971C6.88346 12.4277 7.65959 12.6388 8.27647 12.9472C8.43147 13.0247 8.61554 13.0164 8.76295 12.9253C8.91036 12.8342 9.00008 12.6733 9.00008 12.5V7.5Z" /></symbol><symbol id="i-target" viewBox="0 0 20 20"><path d="M10 11.4999C10.8284 11.4999 11.5 10.8284 11.5 9.99994C11.5 9.17151 10.8284 8.49994 10 8.49994C9.17157 8.49994 8.5 9.17151 8.5 9.99994C8.5 10.8284 9.17157 11.4999 10 11.4999ZM5 9.99991C5 7.23848 7.23858 4.99991 10 4.99991C12.7614 4.99991 15 7.23848 15 9.99991C15 12.7613 12.7614 14.9999 10 14.9999C7.23858 14.9999 5 12.7613 5 9.99991ZM10 5.99991C7.79086 5.99991 6 7.79077 6 9.99991C6 12.209 7.79086 13.9999 10 13.9999C12.2091 13.9999 14 12.209 14 9.99991C14 7.79077 12.2091 5.99991 10 5.99991ZM2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3Z" /></symbol><symbol id="i-weather_moon" viewBox="0 0 20 20"><path d="M15.4932 13.4967C13.5653 16.8358 9.2957 17.9798 5.95663 16.052C5.20013 15.6152 4.54451 15.0515 4.01047 14.3887C6.8412 13.3015 8.56844 11.9681 9.60339 9.99249C10.651 7.99273 10.9395 5.83183 10.3628 3.08319C11.2605 3.20148 12.1328 3.49537 12.9378 3.96018C16.2769 5.88799 17.421 10.1576 15.4932 13.4967ZM5.45663 16.918C9.27399 19.122 14.1552 17.8141 16.3592 13.9967C18.5631 10.1793 17.2552 5.2981 13.4378 3.09415C12.3371 2.45863 11.1233 2.10173 9.88082 2.03507C9.4801 2.01357 9.17217 2.38477 9.26732 2.77462C9.95545 5.59395 9.70125 7.65076 8.71759 9.52844C7.78322 11.312 6.17301 12.559 3.16661 13.635C2.79667 13.7674 2.65251 14.2143 2.87537 14.538C3.54192 15.5059 4.41706 16.3178 5.45663 16.918Z" /></symbol><symbol id="i-weather_sunny" viewBox="0 0 20 20"><path d="M10 2C10.2761 2 10.5 2.22386 10.5 2.5V3.5C10.5 3.77614 10.2761 4 10 4C9.72386 4 9.5 3.77614 9.5 3.5V2.5C9.5 2.22386 9.72386 2 10 2ZM10 14C12.2091 14 14 12.2091 14 10C14 7.79086 12.2091 6 10 6C7.79086 6 6 7.79086 6 10C6 12.2091 7.79086 14 10 14ZM10 13C8.34315 13 7 11.6569 7 10C7 8.34315 8.34315 7 10 7C11.6569 7 13 8.34315 13 10C13 11.6569 11.6569 13 10 13ZM17.5 10.5C17.7761 10.5 18 10.2761 18 10C18 9.72386 17.7761 9.5 17.5 9.5H16.5C16.2239 9.5 16 9.72386 16 10C16 10.2761 16.2239 10.5 16.5 10.5H17.5ZM10 16C10.2761 16 10.5 16.2239 10.5 16.5V17.5C10.5 17.7761 10.2761 18 10 18C9.72386 18 9.5 17.7761 9.5 17.5V16.5C9.5 16.2239 9.72386 16 10 16ZM3.5 10.5C3.77614 10.5 4 10.2761 4 10C4 9.72386 3.77614 9.5 3.5 9.5H2.46289C2.18675 9.5 1.96289 9.72386 1.96289 10C1.96289 10.2761 2.18675 10.5 2.46289 10.5H3.5ZM4.14645 4.14645C4.34171 3.95118 4.65829 3.95118 4.85355 4.14645L5.85355 5.14645C6.04882 5.34171 6.04882 5.65829 5.85355 5.85355C5.65829 6.04882 5.34171 6.04882 5.14645 5.85355L4.14645 4.85355C3.95118 4.65829 3.95118 4.34171 4.14645 4.14645ZM4.85355 15.8536C4.65829 16.0488 4.34171 16.0488 4.14645 15.8536C3.95118 15.6583 3.95118 15.3417 4.14645 15.1464L5.14645 14.1464C5.34171 13.9512 5.65829 13.9512 5.85355 14.1464C6.04882 14.3417 6.04882 14.6583 5.85355 14.8536L4.85355 15.8536ZM15.8536 4.14645C15.6583 3.95118 15.3417 3.95118 15.1464 4.14645L14.1464 5.14645C13.9512 5.34171 13.9512 5.65829 14.1464 5.85355C14.3417 6.04882 14.6583 6.04882 14.8536 5.85355L15.8536 4.85355C16.0488 4.65829 16.0488 4.34171 15.8536 4.14645ZM15.1464 15.8536C15.3417 16.0488 15.6583 16.0488 15.8536 15.8536C16.0488 15.6583 16.0488 15.3417 15.8536 15.1464L14.8536 14.1464C14.6583 13.9512 14.3417 13.9512 14.1464 14.1464C13.9512 14.3417 13.9512 14.6583 14.1464 14.8536L15.1464 15.8536Z" /></symbol><symbol id="i-xbox_controller" viewBox="0 0 20 20"><path d="M8.33392 4.71096C7.90031 4.49327 7.42174 4.45818 6.98277 4.54154L6.08866 4.71131C5.37296 4.84721 4.75644 5.3059 4.42327 5.95567C3.31322 8.1206 2.47927 9.88767 2.15262 11.3931C1.81754 12.9375 2.00689 14.2539 2.97306 15.4543C3.62762 16.2675 4.77323 16.1046 5.37199 15.4285C5.8395 14.9006 6.36936 14.2924 6.88475 13.6965C7.267 13.2545 7.82125 13 8.40387 13H11.59C12.1727 13 12.7269 13.2545 13.1092 13.6965C13.6246 14.2924 14.1544 14.9006 14.6219 15.4285C15.2207 16.1046 16.3663 16.2675 17.0209 15.4543C17.987 14.2539 18.1764 12.9375 17.8413 11.3932C17.5147 9.88768 16.6807 8.12061 15.5707 5.95569C15.2375 5.30592 14.621 4.84722 13.9053 4.71133L13.0112 4.54155C12.5722 4.4582 12.0936 4.49329 11.66 4.71097L11.6028 4.73991C11.2754 4.90672 10.93 5.00001 10.5881 5.00001H9.40584C9.06399 5.00001 8.71853 4.90672 8.39116 4.73991L8.33392 4.71096ZM7.16931 5.52398C7.43176 5.47415 7.68081 5.50202 7.88526 5.60466L7.93716 5.63091C8.38148 5.85731 8.8816 6.00001 9.40584 6.00001H10.5881C11.1123 6.00001 11.6125 5.85731 12.0568 5.63092L12.1087 5.60467C12.3131 5.50203 12.5622 5.47416 12.8246 5.524L13.7187 5.69377C14.1331 5.77245 14.4892 6.03818 14.6808 6.41195C15.7995 8.59364 16.5695 10.2476 16.864 11.6052C17.1502 12.9239 16.978 13.9127 16.2419 14.8272C16.0613 15.0516 15.6548 15.0865 15.3706 14.7655C14.9067 14.2417 14.3796 13.6368 13.8655 13.0423C13.2945 12.382 12.4648 12 11.59 12H8.40387C7.52913 12 6.69944 12.382 6.12838 13.0423C5.61427 13.6368 5.08724 14.2417 4.62337 14.7655C4.33908 15.0865 3.93262 15.0516 3.75206 14.8272C3.01593 13.9127 2.84375 12.9239 3.12988 11.6052C3.42445 10.2476 4.19447 8.59362 5.31311 6.41194C5.50476 6.03817 5.86085 5.77243 6.27521 5.69376L7.16931 5.52398ZM9.99945 8.50003C10.4137 8.50003 10.7495 8.16424 10.7495 7.75003C10.7495 7.33582 10.4137 7.00003 9.99945 7.00003C9.58524 7.00003 9.24945 7.33582 9.24945 7.75003C9.24945 8.16424 9.58524 8.50003 9.99945 8.50003Z" /></symbol></svg>
+<!-- ICONS:END -->
+<a class="skip" href="#main" data-i18n="skip">본문으로 건너뛰기</a>
+
+<header class="topbar" id="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="#top" aria-label="GamePadTester">
+      <img src="images/icon.png" alt="" width="30" height="30">
+      <span>GamePadTester</span>
+    </a>
+    <nav class="nav" aria-label="메뉴" data-i18n-attr="aria-label:nav.label">
+      <a href="#try" data-i18n="nav.try">체험</a>
+      <a href="#features" data-i18n="nav.features">기능</a>
+      <a href="#screens" data-i18n="nav.screens">화면</a>
+      <a href="#update" data-i18n="nav.update">업데이트</a>
+      <a href="#faq" data-i18n="nav.faq">질문</a>
+    </nav>
+    <div class="tools">
+      <div class="lang">
+        <button class="icon-button" id="lang-button" type="button" aria-haspopup="menu" aria-expanded="false"
+                aria-label="언어" data-i18n-attr="aria-label:lang.label">
+          <svg class="ic" aria-hidden="true"><use href="#i-local_language"></use></svg>
+          <span id="lang-current">한국어</span>
+        </button>
+        <div class="lang-menu" id="lang-menu" role="menu" hidden>
+          <button type="button" role="menuitemradio" data-lang="ko">한국어</button>
+          <button type="button" role="menuitemradio" data-lang="en">English</button>
+          <button type="button" role="menuitemradio" data-lang="ja">日本語</button>
+          <button type="button" role="menuitemradio" data-lang="zh-Hans">简体中文</button>
+          <button type="button" role="menuitemradio" data-lang="zh-Hant">繁體中文</button>
+          <button type="button" role="menuitemradio" data-lang="es">Español</button>
+        </div>
+      </div>
+      <button class="icon-button" id="theme-button" type="button" aria-label="다크테마와 라이트테마 전환"
+              data-i18n-attr="aria-label:theme.toggle">
+        <svg class="ic theme-dark" aria-hidden="true"><use href="#i-weather_moon"></use></svg>
+        <svg class="ic theme-light" aria-hidden="true"><use href="#i-weather_sunny"></use></svg>
+      </button>
+      <a class="icon-button" href="https://github.com/deuxdoom/GamePadTester" aria-label="GitHub" title="GitHub">
+        <svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+      </a>
+      <a class="button primary small" id="nav-download" href="#download" data-i18n="nav.download">내려받기</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <a class="chip" id="release-chip" href="https://github.com/deuxdoom/GamePadTester/releases/latest" title="최신 릴리스 페이지 열기" data-i18n-attr="title:hero.chipTitle"><span class="dot"></span><span data-i18n="hero.chip">Windows · 무료 · 포터블</span> · <span class="version-text">v3.2.0</span></a>
+        <h1 data-i18n-html="hero.title">스틱 원형도부터<br>폴링레이트까지<br><em>제대로 재는</em> 패드&nbsp;테스터</h1>
+        <p class="lead" data-i18n="hero.lead">C++ 입력 코어가 스틱의 원시 값을 잽니다. 결과는 지정한 폴더에 이미지 한 장으로 저장해 바로 공유하세요.</p>
+        <div class="cta">
+          <a class="button primary" id="hero-download" href="https://github.com/deuxdoom/GamePadTester/releases/latest">
+            <svg class="ic" aria-hidden="true"><use href="#i-arrow_download"></use></svg>
+            <span data-i18n="hero.download">내려받기</span> <span class="version-text">v3.2.0</span>
+          </a>
+          <a class="button ghost" href="#try">
+            <svg class="ic" aria-hidden="true"><use href="#i-xbox_controller"></use></svg>
+            <span data-i18n="hero.try">브라우저에서 시험하기</span>
+          </a>
+        </div>
+        <p class="fine" data-i18n="hero.fine">Windows 10/11 64비트 · 설치 필요 없음 · SHA-256으로 확인하는 자동 업데이트</p>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <figure class="window-frame">
+          <img id="hero-shot" data-shot="overview" src="images/overview.webp?v=c132dbed9e6f" alt="" width="1800" height="1083" fetchpriority="high">
+        </figure>
+        <img class="float-card card-a" data-shot="card-circularity" src="images/card-circularity.webp?v=c132dbed9e6f" alt="" width="800" height="400" loading="lazy">
+        <img class="float-card card-b" data-shot="card-polling" src="images/card-polling.webp?v=c132dbed9e6f" alt="" width="800" height="400" loading="lazy">
+      </div>
+    </div>
+    <div class="wrap stats">
+      <div><strong>8,000 Hz</strong><span data-i18n="stats.polling">폴링 측정 범위</span></div>
+      <div><strong>32</strong><span data-i18n="stats.directions">원형도 측정 방향</span></div>
+      <div><strong>4</strong><span data-i18n="stats.pads">동시에 연결하는 패드</span></div>
+      <div><strong>6</strong><span data-i18n="stats.languages">지원 언어</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="try">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker" data-i18n="try.kicker">웹 체험판</p>
+        <h2 data-i18n="try.title">지금 이 브라우저에서 패드를 시험해 보세요</h2>
+        <p class="lines" data-i18n="try.lead">패드를 연결하고 아무 버튼이나 누르면 앱과 같은 그림으로 입력을 보여 줍니다.
+이미 연결된 패드는 페이지를 연 뒤 버튼을 한 번 누르면 바로 인식됩니다.
+스틱 원형도도 앱처럼 10초 동안 잴 수 있습니다.</p>
+      </header>
+      <div class="tester">
+        <div class="tester-pad panel">
+          <div class="tester-status">
+            <span class="status-dot" id="pad-dot"></span>
+            <span id="pad-name" data-i18n="try.waiting">패드의 아무 버튼이나 눌러 주세요 · 이미 연결된 패드도 버튼을 눌러야 인식됩니다</span>
+            <button class="button ghost small" id="demo-button" type="button" data-i18n="try.demo">데모 보기</button>
+          </div>
+          <svg id="pad-svg" class="pad-svg" role="img" aria-label="패드 입력 그림" data-i18n-attr="aria-label:try.padLabel"></svg>
+        </div>
+        <div class="tester-side">
+          <div class="panel circ-panel">
+            <div class="panel-head">
+              <h3><svg class="ic" aria-hidden="true"><use href="#i-target"></use></svg><span data-i18n="try.circTitle">스틱 원형도</span></h3>
+              <button class="button primary small" id="circ-button" type="button" data-i18n="try.circStart">원형도 측정</button>
+            </div>
+            <div class="circ-views">
+              <figure><canvas id="circ-left" width="240" height="240"></canvas><figcaption data-i18n="try.left">왼쪽 스틱</figcaption></figure>
+              <figure><canvas id="circ-right" width="240" height="240"></canvas><figcaption data-i18n="try.right">오른쪽 스틱</figcaption></figure>
+            </div>
+            <p class="circ-status lines" id="circ-status" data-i18n="try.circHint">측정을 누르고 두 스틱을 가장자리에 붙인 채 돌리세요.
+가장자리에 닿은 뒤 10초면 끝납니다.</p>
+          </div>
+          <div class="panel rate-panel">
+            <div class="rate-row">
+              <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+              <div>
+                <p class="rate-label" data-i18n="try.rateLabel">이 브라우저가 패드를 읽는 빈도</p>
+                <p class="rate-value"><strong id="rate-value">–</strong> Hz</p>
+              </div>
+            </div>
+            <p class="fine lines" data-i18n="try.rateNote">브라우저는 화면 주사율에 묶여 있어서 진짜 폴링레이트를 잴 수 없습니다.
+앱은 C++ 엔진이 보고서가 도착한 시각을 그대로 기록해 8,000 Hz까지 잽니다.</p>
+          </div>
+        </div>
+      </div>
+      <p class="fine center" id="try-unsupported" hidden data-i18n="try.unsupported">이 브라우저는 Gamepad API를 지원하지 않습니다. 최신 Chrome, Edge, Firefox에서 열어 보세요.</p>
+    </div>
+  </section>
+
+  <section class="section alt" id="features">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker" data-i18n="features.kicker">기능</p>
+        <h2 data-i18n="features.title">패드 점검에 필요한 것을 한 프로그램에</h2>
+      </header>
+      <div class="feature-grid">
+        <article class="feature big">
+          <svg class="ic" aria-hidden="true"><use href="#i-target"></use></svg>
+          <h3 data-i18n="f.circ.title">스틱 원형도</h3>
+          <p data-i18n="f.circ.body">gamepad-tester.com과 같은 방식으로 32개 방향(11.25°)마다 가장 멀리 닿은 거리를 기록해 RMS 평균 오차와 등급을 냅니다. 가장자리에 닿은 뒤 10초면 끝나고, 결과는 32구간 쐐기로 그려 기준 원에서 벗어난 방향일수록 빨갛게 표시합니다. 드리프트·해상도·스냅백도 잽니다.</p>
+        </article>
+        <article class="feature big">
+          <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+          <h3 data-i18n="f.poll.title">폴링레이트</h3>
+          <p data-i18n="f.poll.body">XInput 패킷, HID 원시 보고서, SDL 보고서 중 하나로 잽니다. 통계는 Gamepadla와 같은 방식이고 소수점까지 보여 주며, 중앙값·최대/최소 간격·안정도·이상치도 냅니다. 8 kHz 패드도 정확합니다. 개요 화면에서는 스틱을 돌리기만 해도 대략적인 값이 보입니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-image"></use></svg>
+          <h3 data-i18n="f.card.title">결과 카드</h3>
+          <p data-i18n="f.card.body">원형도·드리프트·폴링 결과를 설정에서 고른 폴더에 800×400 이미지로 바로 저장합니다. 드리프트 카드는 두 스틱의 중심 오차·흔들림·최대 편차·평균 AXIS 0~3 값을 담습니다. 폴링 수치는 천 단위 쉼표 없이 소수점만 표시합니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-ruler"></use></svg>
+          <h3 data-i18n="f.raw.title">원시 스틱 진단</h3>
+          <p data-i18n="f.raw.body">스틱 진단은 원시 값으로 내장 데드존과 축 스냅핑을 찾습니다. XInput·SDL 폴링만 중심 5%의 변화를 제외하며, HID 직접 측정은 보고서 도착 간격을 잽니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-games"></use></svg>
+          <h3 data-i18n="f.multi.title">패드 4개까지</h3>
+          <p data-i18n="f.multi.body">실제 장치명이 보이는 탭으로 바꿔 보고, 패드 이름을 직접 붙일 수 있습니다. 측정은 패드마다 따로 진행합니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-xbox_controller"></use></svg>
+          <h3 data-i18n="f.layout.title">패드에 맞춘 화면</h3>
+          <p data-i18n="f.layout.body">Xbox Series, DualSense, ProCon 2의 실제 사진에서 딴 윤곽과 버튼 배치로 그립니다. 닌텐도식 ABXY와 후면 버튼도 보여 줍니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-database"></use></svg>
+          <h3 data-i18n="f.gpl.title">Gamepadla 비교</h3>
+          <p data-i18n="f.gpl.body">패드의 실측 지연 데이터를 찾아 내 폴링 결과와 비교합니다. 읽기만 하고 아무것도 올리지 않습니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
+          <h3 data-i18n="f.oc.title">DualSense USB OverClock</h3>
+          <p data-i18n="f.oc.body">Gamepadla에서 Verified로 확인된 일반 USB DualSense의 이름 옆 빨간색 OverClock 버튼을 누르면 1000Hz를 적용하고, 다시 누르면 원래 설정으로 복원합니다. 적용 상태는 OverClock ON으로 표시하며, 옆 정보 버튼에서 실제 HID 보고율을 확인합니다. 관리자 승인 후 해당 장치만 자동 재연결합니다. DualSense Edge는 기본 1000Hz라 대상이 아닙니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-tap_single"></use></svg>
+          <h3 data-i18n="f.buttons.title">버튼·트리거</h3>
+          <p data-i18n="f.buttons.body">누른 횟수·시간·간격을 세고 채터링을 찾아냅니다. 트리거는 정지값·최대값·해상도를 봅니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-phone_vibrate"></use></svg>
+          <h3 data-i18n="f.haptics.title">진동·라이트</h3>
+          <p data-i18n="f.haptics.body">좌우 모터와 9가지 패턴, Xbox 트리거 진동, DualSense 적응형 트리거, DualSense LED 색.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-cube_rotate"></use></svg>
+          <h3 data-i18n="f.motion.title">모션·터치</h3>
+          <p data-i18n="f.motion.body">자이로·가속도 그래프와 보고율, 정지 캘리브레이션, 3D 자세, 터치패드 손가락 위치.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-braces"></use></svg>
+          <h3 data-i18n="f.combinations.title">조합 입력</h3>
+          <p data-i18n="f.combinations.body">최대 동시 누름과 상하·좌우 동시 입력 횟수를 기록합니다. 입력값은 바꾸지 않습니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-local_language"></use></svg>
+          <h3 data-i18n="f.ui.title">6개 언어·두 가지 테마</h3>
+          <p data-i18n="f.ui.body">6개 언어, 다크테마·라이트테마와 강조색. 기본값은 시스템 테마로 Windows의 앱 모드 설정을 따릅니다. 고정 창이 Windows 배율에 맞춰 주 모니터 중앙의 개요 화면에서 시작합니다.</p>
+        </article>
+        <article class="feature">
+          <svg class="ic" aria-hidden="true"><use href="#i-flash"></use></svg>
+          <h3 data-i18n="f.portable.title">설치 없는 포터블</h3>
+          <p data-i18n="f.portable.body">압축을 풀고 실행하세요. 설정·캐시는 앱 옆에, 텍스트 리포트는 report/에 저장합니다. 이미지 폴더는 설정에서 고릅니다.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="screens">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker" data-i18n="screens.kicker">화면</p>
+        <h2 data-i18n="screens.title">한 화면에 필요한 것만</h2>
+        <p data-i18n="screens.lead">모든 페이지가 스크롤 없이 한 화면에 들어갑니다. 그림을 누르면 크게 볼 수 있습니다.</p>
+      </header>
+    </div>
+    <div class="gallery" id="gallery" role="region" aria-roledescription="carousel" aria-label="앱 화면" data-i18n-attr="aria-label:screens.carousel">
+      <div class="gallery-track" id="gallery-track">
+        <figure class="gallery-slide" data-shot="overview" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/overview.webp?v=c132dbed9e6f" alt="개요 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.overview">개요</strong> <span data-i18n="screens.desc.overview">선택한 패드의 모든 입력을 실시간으로 보여 줍니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="sticks" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/sticks.webp?v=c132dbed9e6f" alt="스틱 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.sticks">스틱</strong> <span data-i18n="screens.desc.sticks">두 스틱의 원형도, 중심 드리프트, 해상도, 스냅백을 측정합니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="polling" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/polling.webp?v=c132dbed9e6f" alt="폴링 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.polling">폴링</strong> <span data-i18n="screens.desc.polling">패드가 입력을 얼마나 자주 보고하는지 Gamepadla와 같은 기준으로 측정합니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="buttons" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/buttons.webp?v=c132dbed9e6f" alt="버튼 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.buttons">버튼</strong> <span data-i18n="screens.desc.buttons">누름 횟수, 누른 시간, 채터링(한 번 눌렀는데 두 번 입력됨), 트리거 범위를 확인합니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="haptics" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/haptics.webp?v=c132dbed9e6f" alt="진동 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.haptics">진동</strong> <span data-i18n="screens.desc.haptics">모터와 트리거의 진동·저항을 테스트합니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="motion" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/motion.webp?v=c132dbed9e6f" alt="모션 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.motion">모션</strong> <span data-i18n="screens.desc.motion">자이로, 가속도, 기울기 자세, 터치패드를 확인합니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="extras" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/extras.webp?v=c132dbed9e6f" alt="기타 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.extras">기타</strong> <span data-i18n="screens.desc.extras">DualSense 라이트바의 색을 바꿉니다. DUALSHOCK 4 등 RGB 조명이 있는 다른 패드에도 적용됩니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="device" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/device.webp?v=c132dbed9e6f" alt="장치 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.device">장치</strong> <span data-i18n="screens.desc.device">하드웨어 정보와 Gamepadla에 공개된 실측 지연 데이터를 보여 줍니다.</span></figcaption>
+        </figure>
+        <figure class="gallery-slide" data-shot="settings" aria-roledescription="slide">
+          <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
+            <img src="images/settings.webp?v=c132dbed9e6f" alt="설정 화면" width="1800" height="1083" loading="lazy" decoding="async">
+          </button>
+          <figcaption><strong data-i18n="screens.settings">설정</strong> <span data-i18n="screens.desc.settings">언어, 테마, 입력 수집 주기, 업데이트를 설정합니다.</span></figcaption>
+        </figure>
+      </div>
+      <div class="gallery-controls">
+        <div class="gallery-dots" role="tablist" aria-label="화면 고르기" data-i18n-attr="aria-label:screens.pick"></div>
+        <button class="gallery-play" id="gallery-play" type="button" data-state="playing" aria-label="자동 넘김 일시 정지">
+          <svg class="ic pause" viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="4" width="3.6" height="12" rx="1.2"/><rect x="11.4" y="4" width="3.6" height="12" rx="1.2"/></svg>
+          <svg class="ic play" viewBox="0 0 20 20" aria-hidden="true"><path d="M6.5 4.6v10.8c0 .8.9 1.3 1.6.9l8.7-5.4c.6-.4.6-1.3 0-1.7L8.1 3.7c-.7-.4-1.6.1-1.6.9Z"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="update">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker" data-i18n="update.kicker">자동 업데이트</p>
+        <h2 data-i18n-html="update.title">새 버전은 버튼 한 번으로,<br>받은 파일은 SHA-256으로 확인합니다</h2>
+        <p class="lines" data-i18n="update.lead">전체 릴리스 내역부터 설치와 재실행까지, 독립된 창 하나에서 확인합니다.
+다운로드 속도와 처리한 파일 수를 단계별로 보여 줍니다.</p>
+      </header>
+      <div class="update-demo">
+        <ol class="update-steps" id="update-steps">
+          <li><button type="button" data-step="0"><span class="step-num">1</span><span class="step-text"><strong data-i18n="update.step1">새 버전 알림</strong><small data-i18n="update.step1b">전체 릴리스 내역을 읽고, 지금 업데이트할지 나중에 할지 고릅니다.</small></span></button></li>
+          <li><button type="button" data-step="1"><span class="step-num">2</span><span class="step-text"><strong data-i18n="update.step2">내려받기·SHA-256 확인</strong><small data-i18n="update.step2b">GitHub에서만 받고, 해시가 맞아야 다음으로 넘어갑니다.</small></span></button></li>
+          <li><button type="button" data-step="2"><span class="step-num">3</span><span class="step-text"><strong data-i18n="update.step3">파일 바꾸기</strong><small data-i18n="update.step3b">이전 파일을 백업한 뒤 바꾸고, 실패하면 되돌립니다.</small></span></button></li>
+          <li><button type="button" data-step="3"><span class="step-num">4</span><span class="step-text"><strong data-i18n="update.step4">완료</strong><small data-i18n="update.step4b">새 버전이 다시 실행되면 5초 후 업데이트 창이 닫힙니다. 설정은 그대로 남습니다.</small></span></button></li>
+        </ol>
+        <div class="update-stage">
+          <div class="update-preview" id="update-preview">
+            <img id="update-shot" src="images/update-notice.webp?v=c132dbed9e6f" width="1020" height="953" loading="lazy" alt="업데이트 창 — 릴리스 내역과 작업 단계">
+          </div>
+          <p class="fine center" data-i18n="update.example">실제 독립 업데이트 창의 캡처입니다. 버전과 릴리스 내역은 예시입니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="tips">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="kicker" data-i18n="tips.kicker">정확하게 재는 방법</p>
+        <h2 data-i18n="tips.title">세 가지만 기억하세요</h2>
+      </header>
+      <div class="tip-grid">
+        <article class="tip"><span class="tip-num">1</span><h3 data-i18n="tips.circ">원형도</h3><p data-i18n="tips.circb">스틱 화면에서 측정을 누르고 스틱을 가장자리에 붙인 채 돌립니다. 닿은 뒤 10초 동안 두세 바퀴 이상 돌리면 됩니다.</p></article>
+        <article class="tip"><span class="tip-num">2</span><h3 data-i18n="tips.poll">폴링레이트</h3><p data-i18n="tips.pollb">USB 허브 없이 PC에 바로 연결하고, 측정이 끝날 때까지 스틱을 빠르게 원을 그리며 돌립니다.</p></article>
+        <article class="tip"><span class="tip-num">3</span><h3 data-i18n="tips.motion">모션 센서</h3><p data-i18n="tips.motionb">모션 센서를 지원하는 패드를 평평한 곳에 놓고 정지 보정을 누릅니다. 3초 동안 움직이지 않은 뒤, 기울이거나 돌려 자이로·가속도 반응을 확인합니다.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="faq">
+    <div class="wrap narrow">
+      <header class="section-head">
+        <p class="kicker" data-i18n="faq.kicker">자주 묻는 질문</p>
+        <h2 data-i18n="faq.title">궁금한 점</h2>
+      </header>
+      <div class="faq">
+        <details><summary data-i18n="faq.q1">'Windows의 PC 보호' 창이 떠요.</summary><p data-i18n="faq.a1">코드 서명을 하지 않은 프로그램이라 처음 한 번 나타날 수 있습니다. 추가 정보를 누른 뒤 실행을 누르세요.</p></details>
+        <details><summary data-i18n="faq.q2">어떤 패드를 쓸 수 있나요?</summary><p data-i18n="faq.a2">XInput 패드(Xbox와 호환 패드), DualSense·DUALSHOCK 4, Switch Pro·ProCon 2 컨트롤러 등 SDL 3이 지원하는 패드를 모두 인식합니다. ProCon 2는 USB 케이블로 연결하면 앱이 PC 모드로 자동 전환합니다(블루투스 미지원).</p></details>
+        <details><summary data-i18n="faq.q3">측정 결과가 어딘가로 전송되나요?</summary><p data-i18n="faq.a3">아니요. 결과는 내 PC에만 저장됩니다. 인터넷은 Gamepadla 조회와 업데이트 확인에만 씁니다.</p></details>
+        <details><summary data-i18n="faq.q4">2.x에서 자동으로 업데이트되나요?</summary><p data-i18n="faq.a4">v3는 새로 만든 버전이라 자동으로 넘어가지 않습니다. ZIP을 새 폴더에 풀어서 쓰세요. 다음 버전부터는 자동 업데이트가 됩니다.</p></details>
+        <details><summary data-i18n="faq.q5">웹 체험판과 앱은 무엇이 다른가요?</summary><p data-i18n="faq.a5">브라우저는 화면 주사율만큼만 패드를 읽어서 폴링레이트를 잴 수 없습니다. 앱은 C++ 엔진이 보고서를 직접 읽고, 진동·자이로·Gamepadla 비교 같은 기능도 씁니다.</p></details>
+        <details><summary data-i18n="faq.q6">설정은 어디에 저장되나요?</summary><p data-i18n="faq.a6">프로그램 폴더의 settings.json에 저장됩니다. 폴더째로 옮겨도 설정이 따라갑니다.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="download">
+    <div class="wrap narrow">
+      <div class="download panel">
+        <img src="images/icon.png" alt="" width="72" height="72">
+        <h2 data-i18n="dl.title">GamePadTester 내려받기</h2>
+        <p class="dl-meta"><span class="version-text">v3.2.0</span><span id="dl-date"></span><span id="dl-size"></span></p>
+        <a class="button primary large" id="dl-link" href="https://github.com/deuxdoom/GamePadTester/releases/latest">
+          <svg class="ic" aria-hidden="true"><use href="#i-arrow_download"></use></svg>
+          <span data-i18n="dl.button">최신 버전 내려받기</span>
+        </a>
+        <p class="fine" data-i18n="dl.req">Windows 10/11 64비트 · ZIP을 풀고 GamePadTester.exe를 실행하세요</p>
+        <div class="sha" id="dl-sha-box" hidden>
+          <span class="sha-label" data-i18n="dl.sha">SHA-256</span>
+          <code id="dl-sha"></code>
+          <button class="icon-button" id="dl-copy" type="button" aria-label="복사" data-i18n-attr="aria-label:dl.copy">
+            <svg class="ic" aria-hidden="true"><use href="#i-copy"></use></svg>
+          </button>
+        </div>
+        <p class="fine"><a href="https://github.com/deuxdoom/GamePadTester/releases" data-i18n="dl.all">모든 버전 보기</a> · <a href="https://github.com/deuxdoom/GamePadTester/blob/main/CHANGELOG.md" data-i18n="dl.changelog">변경 기록</a></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <p>© 2025-2026 deuxdoom · All rights reserved · <a href="https://github.com/deuxdoom/GamePadTester/blob/main/LICENSE">Freeware License</a></p>
+    <p class="fine" data-i18n-html="footer.credits">SDL 3(zlib) · Qt for Python(LGPL v3) · Pretendard JP(OFL, 이 사이트에서는 일부 글자만 담아 이름을 바꿔 씀) · JetBrains Mono(OFL) · Fluent UI System Icons(MIT) · GitHub 마크: Octicons(MIT) · 앱 아이콘: deuxdoom · 지연 데이터: <a href="https://gamepadla.com">Gamepadla</a></p>
+  </div>
+</footer>
+
+<dialog class="lightbox" id="lightbox">
+  <form method="dialog"><button class="icon-button close" aria-label="닫기" data-i18n-attr="aria-label:common.close"><svg class="ic" aria-hidden="true"><use href="#i-dismiss"></use></svg></button></form>
+  <img id="lightbox-image" src="images/overview.webp?v=c132dbed9e6f" alt="" width="1800" height="1083">
+</dialog>
+</body>
+</html>
