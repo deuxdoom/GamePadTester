@@ -4,12 +4,15 @@
 <h1 align="center">GamePadTester</h1>
 <p align="center">
   <a href="https://github.com/deuxdoom/GamePadTester/releases/latest"><img src="https://img.shields.io/github/v/release/deuxdoom/GamePadTester?logo=github&label=RELEASE" alt="RELEASE"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/LICENSE-FREEWARE-64748B" alt="LICENSE: Freeware"></a>
+  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/total?logo=github&label=DOWNLOADS" alt="DOWNLOADS"></a>
   <img src="https://img.shields.io/badge/OS-WINDOWS%2010%20%2F%2011-0078D6?logo=windows" alt="Windows 10/11">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/LICENSE-FREEWARE-64748B" alt="LICENSE: Freeware"></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/PYTHON-3.11%2B-3776AB?logo=python" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/GUI-PYSIDE6-41CD52?logo=qt" alt="PySide6">
   <img src="https://img.shields.io/badge/CORE-C%2B%2B20%20%C2%B7%20SDL3-00599C?logo=cplusplus" alt="C++20 · SDL3">
-  <a href="https://github.com/deuxdoom/GamePadTester/releases"><img src="https://img.shields.io/github/downloads/deuxdoom/GamePadTester/total?logo=github&label=DOWNLOADS" alt="DOWNLOADS"></a>
 </p>
 
 <p align="center"><b>스틱 원형도와 폴링레이트를 정밀하게 재는 Windows용 게임패드 테스터</b><br>
@@ -40,9 +43,27 @@
 
 ---
 
-## ✨ 무엇을 할 수 있나요
+<a id="introduction"></a>
 
-<a name="stick-circularity"></a>
+## 📌 소개
+
+스틱 원형도와 폴링레이트를 정밀하게 재는 Windows용 게임패드 테스터입니다. 버튼·트리거·진동·자이로·터치패드 점검, Gamepadla 실측 데이터 비교, 결과 카드 이미지 저장을 제공합니다.
+
+<a id="requirements"></a>
+
+## 💻 시스템 요구 사항
+
+- Windows 10/11
+- 실행 파일 옆에 설정·캐시를 저장할 수 있는 폴더
+- 점검할 게임패드
+
+<a id="features"></a>
+
+<a id="-무엇을-할-수-있나요"></a>
+
+## ✨ 주요 기능
+
+<a id="stick-circularity"></a>
 
 ### 🎯 스틱 원형도 평균값 측정
 
@@ -55,9 +76,10 @@
 - 스냅백은 시작 후 **최대 15초에 자동 종료**하며, 남은 시간과 완료 알림을 보여 줍니다. 다른 화면으로 이동해도 측정이 끝납니다.
 - **데드존을 임의로 적용하지 않습니다.** 원시 값 그대로 재기 때문에 패드에 내장된 데드존과 축 스냅핑을 찾아낼 수 있습니다. SDL이 Y축을 뒤집으며 생기는 한 단계 어긋남도 입력 코어가 되돌려, 가만히 둔 스틱은 패드가 보낸 값 그대로 보입니다.
 
-<a name="polling-rate"></a>
+<a id="polling-rate"></a>
 
 ### 📶 폴링레이트 측정
+
 - **자동 측정**은 XInput 패킷 또는 SDL의 스틱 입력 변화를 사용합니다. 이 두 방식에만 **중심 5% 데드존**을 적용해 미세 떨림으로 측정이 진행되는 것을 막습니다. 원형도·드리프트·원시 입력 값에는 적용하지 않습니다. HID 직접 측정은 전체 보고서 도착 간격을 재므로, 듀얼센스처럼 정지 상태에서도 보고서를 보내는 패드는 스틱을 움직이지 않아도 측정됩니다. HID 방식에는 스틱 선택·중심 데드존이 적용되지 않습니다.
 - C++ 전용 스레드가 측정합니다. **XInput 패킷**은 바쁜 대기로 감시하고, **HID 원시 보고서**는 도착 시각을 나노초 단위로 기록하며, SDL 보고서 방식도 고를 수 있습니다.
 - 통계는 [Gamepadla](https://gamepadla.com)와 같은 방식(아래 2%·위 0.5% 제외 → 최소·평균·최대·지터)으로 계산해 바로 비교할 수 있습니다.
@@ -68,7 +90,7 @@
 - 개요 화면에서도 스틱을 가장자리 쪽에서 계속 돌리면 패드 그림 아래에 **대략적인 폴링레이트**(예: ≈ 998 Hz)가 나타납니다. 표준값으로 반올림하지 않고 잰 값을 그대로 보여 줍니다. XInput 패드는 패킷 번호로 세므로 2K·8K 패드도 근사값이 나옵니다.
 - 지터 등급은 간격의 흔들림을 ms로 매깁니다(0.5 ms 이하 우수). 고주사율 패드가 비율 때문에 괜히 나쁘게 나오지 않습니다.
 
-<a name="dualsense-overclock"></a>
+<a id="dualsense-overclock"></a>
 
 ### 🔴 DualSense USB OverClock
 
@@ -87,9 +109,10 @@
   <img src="docs/images/overclock.webp?v=c132dbed9e6f" alt="OverClock 설명과 HID 보고율 확인" width="570">
 </p>
 
-<a name="result-cards"></a>
+<a id="result-cards"></a>
 
 ### 🖼️ 결과 카드 이미지
+
 원형도·드리프트·폴링 결과를 **800×400 PNG**로 저장합니다. 설정에서 이미지 폴더를 고르면 창 캡처와 결과 카드가 그곳에 바로 저장됩니다. 원형도는 원 그림·평균 오차·등급을, 드리프트는 두 스틱의 중심 오차·등급·흔들림·최대 편차·평균 AXIS 0~3 좌표·표본 수를, 폴링은 평균 보고율·최대·최소 보고율·평균 간격·지터를 담습니다. 카드에는 장치 이름과 측정 완료 시각도 표시합니다. 폴링 카드의 숫자는 천 단위 쉼표 없이 소수점만 표시합니다(예: 1000.00 Hz).
 
 스틱의 이미지 저장은 **원형도·드리프트 완료 결과**를 지원합니다. 드리프트 측정이 끝나면 `이미지 저장`이 켜지며, 준비·측정 중에는 꺼집니다. 스냅백 이미지 저장은 아직 지원하지 않습니다.
@@ -100,18 +123,20 @@
   <img src="docs/images/card-polling.webp?v=c132dbed9e6f" alt="폴링 결과 카드" width="440">
 </p>
 
-<a name="controller-layout"></a>
+<a id="controller-layout"></a>
 
 ### 🎮 패드에 맞춘 화면
+
 - 최대 **4개 패드**를 동시에 연결할 수 있습니다. 장치명·VID:PID·연결 방식이 보이는 탭으로 바꿔 보며, 결과는 패드별로 보존합니다. 패드 탭을 바꾸면 진행 중인 원형도·폴링 측정은 중지합니다. 같은 패드에서 페이지를 이동할 때는 측정이 계속됩니다. 탭의 VID:PID(XXXX:YYYY)를 누르면 복사되어 여러 패드의 ID를 모으기 쉽습니다.
 - 패드가 알려 주는 이름은 'XInput Controller #1'처럼 일반적인 경우가 많습니다. 선택된 탭의 이름을 누르면 **이름을 직접 붙일 수 있고**(Enter로 저장, 비우면 원래 이름), Steam처럼 VID:PID별로 기억해서 다음에 연결해도 그 이름으로 보입니다. 붙인 이름은 결과 카드·내보내기·Gamepadla 자동 매칭에도 쓰입니다.
 - 직접 붙인 이름이 없으면 Gamepadla에서 **Verified**로 확인된 모델명을 탭 이름에 자동으로 씁니다. 장치 화면을 열지 않은 패드에도 적용됩니다.
 - 패드 그림은 실제 컨트롤러 정면 사진에서 딴 윤곽과 버튼 위치로 그립니다(좌우 대칭으로 다듬음). XInput 패드는 Xbox Series 컨트롤러, DualSense·DUALSHOCK 4는 DualSense, ProCon 2·Switch Pro 컨트롤러는 ProCon 2 모양으로 그리고, 닌텐도 패드는 A가 오른쪽·B가 아래인 닌텐도식 배치를 따릅니다. Elite 패들, DualSense Edge 후면 버튼, GL/GR도 손잡이 아래에 따로 보여 줍니다.
 - 무선 수신기가 덧붙여 내보내는 가짜 장치(축 없는 HID 인터페이스)는 자동으로 걸러 냅니다.
 
-<a name="other-tests"></a>
+<a id="other-tests"></a>
 
 ### 🔎 그 밖의 점검
+
 | 화면 | 내용 |
 |---|---|
 | 버튼·트리거 | 누름 횟수·누른 시간·간격, 최대 동시 누름·반대 방향 동시 입력, 채터링 감지, 트리거 정지값·최대값·해상도·그래프 |
@@ -149,9 +174,10 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 
 앱을 정상 종료하면 사용한 전용 경로에 제어권 해제 명령을 보냅니다. **Steam Input이나 다른 SDL 기반 앱도 같은 패드를 사용할 수 있어**, GamePadTester를 닫아도 Space Station의 '타사 앱에서 제어 중' 표시가 유지될 수 있습니다. 그럴 땐 스팀 클라이언트를 종료하거나 설정에서 타사 허용을 껐다가 키면 해결 됩니다. 
 
-<a name="convenience"></a>
+<a id="convenience"></a>
 
 ### ⚙️ 편의 기능
+
 - **SHA-256으로 검증하는 자동 업데이트**: 앱을 시작할 때마다 새 버전을 확인합니다(설정의 `지금 확인`으로도 확인). 독립된 창 하나에서 전체 릴리스 내역과 단계별 진행 상황을 확인합니다. GitHub 릴리스의 파일 해시를 검증한 뒤 설치하고, 실패하면 이전 버전으로 되돌립니다. 성공하면 앱을 다시 실행하고 5초 후 업데이트 창을 닫습니다.
 - 한국어·English·日本語·简体中文·繁體中文·Español, 다크테마·라이트테마와 강조색. 기본값은 시스템 테마이며 Windows의 앱 모드 설정을 따릅니다. 창은 Windows 배율에 맞춘 고정 크기로 주 모니터 중앙의 개요 화면에서 시작합니다.
 - 창 전체 캡처(Ctrl+Shift+S), 페이지 전환(Ctrl+1~9), 패드 전환(Alt+1~4).
@@ -161,7 +187,40 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 
 ---
 
-<a name="screenshots"></a>
+---
+
+<a id="download"></a>
+
+<a id="usage"></a>
+
+<a id="-내려받기와-실행"></a>
+
+## 🚀 다운로드 및 실행
+
+1. [Releases](https://github.com/deuxdoom/GamePadTester/releases/latest)에서 최신 버전 ZIP(예: `GamePadTester_v320.zip`)을 받습니다. GamePadTester는 공식 릴리스에서만 배포하니, 다른 곳에 올라온 파일은 받지 마세요.
+2. 원하는 폴더에 압축을 풀고 `GamePadTester.exe`를 실행합니다. 바탕화면이나 문서 폴더처럼 쓰기 권한이 있는 곳을 권장합니다.
+3. 'Windows의 PC 보호' 창이 뜨면 **추가 정보 → 실행**을 누릅니다. 코드 서명을 하지 않은 프로그램이라 처음 한 번 나타날 수 있습니다.
+
+다음 버전부터는 프로그램이 새 버전을 알려 주고, `지금 업데이트`를 누르면 알아서 바꿉니다.
+받은 파일이 원본과 같은지는 릴리스 본문의 SHA-256 값으로 확인할 수 있습니다.
+
+> **2.x에서 넘어오는 경우**: v3는 완전히 새로 만든 버전이라 자동 업데이트로 넘어가지 않습니다. 새 폴더에 압축을 풀어 사용하세요.
+
+<a id="measurement-tips"></a>
+
+### 정확하게 재려면
+
+- **원형도**: 스틱 화면에서 `원형도 측정`을 누르고 스틱을 가장자리에 붙인 채 돌립니다. 가장자리에 닿은 뒤 10초가 지나면 저절로 끝나니, 그동안 바깥쪽으로 힘을 준 채 두세 바퀴 이상 돌리면 됩니다.
+- **폴링레이트**: 패드를 USB 허브 없이 PC에 바로 연결하고, 측정이 끝날 때까지 고른 스틱을 빠르게 원을 그리며 돌립니다.
+- **모션 센서**: 모션 센서를 지원하는 패드를 평평한 곳에 놓고 `정지 보정`을 누릅니다. 3초 동안 움직이지 않은 뒤, 기울이거나 돌려 자이로·가속도 반응을 확인합니다.
+
+---
+
+<a id="licenses"></a>
+
+<a id="screenshots"></a>
+
+<a id="-화면"></a>
 
 ## 📸 화면
 
@@ -173,33 +232,29 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 | **모션·터치** | **장치·Gamepadla** |
 | <img src="docs/images/motion.webp?v=c132dbed9e6f" alt="모션·터치"> | <img src="docs/images/device.webp?v=c132dbed9e6f" alt="장치·Gamepadla"> |
 
----
+<a id="support"></a>
 
-<a name="download"></a>
+## 🤝 문의 및 지원
 
-## 📥 내려받기와 실행
-1. [Releases](https://github.com/deuxdoom/GamePadTester/releases/latest)에서 최신 버전 ZIP(예: `GamePadTester_v320.zip`)을 받습니다. GamePadTester는 공식 릴리스에서만 배포하니, 다른 곳에 올라온 파일은 받지 마세요.
-2. 원하는 폴더에 압축을 풀고 `GamePadTester.exe`를 실행합니다. 바탕화면이나 문서 폴더처럼 쓰기 권한이 있는 곳을 권장합니다.
-3. 'Windows의 PC 보호' 창이 뜨면 **추가 정보 → 실행**을 누릅니다. 코드 서명을 하지 않은 프로그램이라 처음 한 번 나타날 수 있습니다.
+- **버그 제보 및 기능 제안:** [GitHub Issues](https://github.com/deuxdoom/GamePadTester/issues)
+- **버전별 변경 내용:** [변경 기록](CHANGELOG.md) · [전체 릴리스](https://github.com/deuxdoom/GamePadTester/releases)
 
-다음 버전부터는 프로그램이 새 버전을 알려 주고, `지금 업데이트`를 누르면 알아서 바꿉니다.
-받은 파일이 원본과 같은지는 릴리스 본문의 SHA-256 값으로 확인할 수 있습니다.
+<a id="license"></a>
 
-> **2.x에서 넘어오는 경우**: v3는 완전히 새로 만든 버전이라 자동 업데이트로 넘어가지 않습니다. 새 폴더에 압축을 풀어 사용하세요.
+<a id="-출처와-라이선스"></a>
 
-<a name="measurement-tips"></a>
+## 📜 라이선스 및 저작권
 
-### 정확하게 재려면
-- **원형도**: 스틱 화면에서 `원형도 측정`을 누르고 스틱을 가장자리에 붙인 채 돌립니다. 가장자리에 닿은 뒤 10초가 지나면 저절로 끝나니, 그동안 바깥쪽으로 힘을 준 채 두세 바퀴 이상 돌리면 됩니다.
-- **폴링레이트**: 패드를 USB 허브 없이 PC에 바로 연결하고, 측정이 끝날 때까지 고른 스틱을 빠르게 원을 그리며 돌립니다.
-- **모션 센서**: 모션 센서를 지원하는 패드를 평평한 곳에 놓고 `정지 보정`을 누릅니다. 3초 동안 움직이지 않은 뒤, 기울이거나 돌려 자이로·가속도 반응을 확인합니다.
+**Copyright © 2025–2026 deuxdoom. All rights reserved.**
 
----
-
-<a name="licenses"></a>
-
-## 🙏 출처와 라이선스
+| 항목 | 내용 |
+| --- | --- |
+| 배포 형태 | 프리웨어 (개인·업무 용도 무료) |
+| 소스 코드 | 비공개 |
 - 프로그램: [GamePadTester 프리웨어 라이선스](LICENSE) © deuxdoom. 누구나 무료로 사용할 수 있지만, 수정·역설계·재배포는 허용하지 않습니다. 3.2.0 이하 버전은 배포 당시 함께 제공한 라이선스를 따릅니다.
+
+### 제3자 구성 요소 및 출처
+
 - [SDL 3](https://libsdl.org)(zlib), [Qt for Python](https://www.qt.io/qt-for-python)(LGPL v3), [Pretendard](https://github.com/orioncactus/pretendard)·[JetBrains Mono](https://github.com/JetBrains/JetBrainsMono)(SIL OFL 1.1), [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons)(MIT), [GitHub Octicons](https://github.com/primer/octicons)(MIT). 라이선스 원문은 각 링크에서 볼 수 있습니다.
 - SDL 3.4.16은 ProCon 2의 USB 초기화를 위해 libusb를 켜고 소스에서 직접 빌드했습니다. [libusb](https://github.com/libusb/libusb)(LGPL 2.1) 1.0.30 공식 DLL을 수정 없이 포함하며, 라이선스 원문은 앱 폴더의 `bin/gamepadtester/assets/libusb/`에 있습니다. LGPL 구성 요소(Qt for Python, libusb)는 해당 라이선스에 따라 교체·수정할 수 있습니다.
 - [HIDUSBF](https://github.com/LordOfMice/hidusbf): SweetLow / LordOfMice의 서명된 NoPatch 드라이버·INF 원본을 포함합니다. [저작자의 Public Domain 배포 허용 안내](https://github.com/LordOfMice/hidusbf/issues/407), 고정 커밋·해시·출처는 앱 폴더의 `bin/gamepadtester/assets/overclock/SOURCE.json`에 기록했습니다.
