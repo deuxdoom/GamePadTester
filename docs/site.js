@@ -4,7 +4,7 @@
 
 (function () {
   const REPO = "deuxdoom/GamePadTester";
-  const IMAGE_REVISION = "c132dbed9e6f";
+  const IMAGE_REVISION = "080dc58e93f6";
   const RELEASES = `https://github.com/${REPO}/releases/latest`;
   const LANGS = ["ko", "en", "ja", "zh-Hans", "zh-Hant", "es"];
   const LANG_NAMES = { ko: "한국어", en: "English", ja: "日本語", "zh-Hans": "简体中文", "zh-Hant": "繁體中文", es: "Español" };

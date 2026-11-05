@@ -19,7 +19,7 @@
 버튼·트리거·진동·자이로·터치패드 점검, Gamepadla 실측 데이터 비교, 결과 카드 이미지 저장까지 한 프로그램에서.</p>
 
 <p align="center">
-  <img src="docs/images/overview.webp?v=c132dbed9e6f" alt="GamePadTester 개요 화면" width="900">
+  <img src="docs/images/overview.webp?v=080dc58e93f6" alt="GamePadTester 개요 화면" width="900">
 </p>
 
 <p align="center">
@@ -89,6 +89,7 @@
 - 간격 산점도·분포·색으로 구분한 간격 기록을 보여 주고, JSON(Gamepadla 호환 키)·CSV·TXT로 내보냅니다.
 - 개요 화면에서도 스틱을 가장자리 쪽에서 계속 돌리면 패드 그림 아래에 **대략적인 폴링레이트**(예: ≈ 998 Hz)가 나타납니다. 표준값으로 반올림하지 않고 잰 값을 그대로 보여 줍니다. XInput 패드는 패킷 번호로 세므로 2K·8K 패드도 근사값이 나옵니다.
 - 지터 등급은 간격의 흔들림을 ms로 매깁니다(0.5 ms 이하 우수). 고주사율 패드가 비율 때문에 괜히 나쁘게 나오지 않습니다.
+- 4k·8k 측정 중에도 화면과 중지 버튼이 응답하도록 입력 수집을 나누어 처리합니다. 스틱을 오래 움직인 뒤에도 누적 원시 값을 반복 정렬하지 않아 전체 화면 갱신이 느려지지 않습니다. 입력 시각과 통계 계산 기준은 그대로 유지합니다.
 
 <a id="dualsense-overclock"></a>
 
@@ -105,8 +106,8 @@
 실제 USB DualSense의 장치 버튼으로 **해제 249.97 Hz → 재적용 999.53 Hz(1.0005 ms)**를 확인했습니다. 해제는 저장한 원래 설정으로 돌아가는 동작입니다. 이름 옆 정보(i) 버튼의 설명 창은 안내와 `HID 보고율 확인`만 제공하며, 적용·복원은 OverClock 버튼으로 합니다. `HID 보고율 확인`은 설정 목표 대신 실제 보고서 도착 간격을 측정합니다. USB 보고율이 높아져도 게임의 입력 지연이나 펌웨어 내부 샘플링이 같은 비율로 개선된다는 의미는 아닙니다.
 
 <p align="center">
-  <img src="docs/images/device-overclock.webp?v=c132dbed9e6f" alt="DualSense 장치 이름 옆 OverClock 버튼" width="720">
-  <img src="docs/images/overclock.webp?v=c132dbed9e6f" alt="OverClock 설명과 HID 보고율 확인" width="570">
+  <img src="docs/images/device-overclock.webp?v=080dc58e93f6" alt="DualSense 장치 이름 옆 OverClock 버튼" width="720">
+  <img src="docs/images/overclock.webp?v=080dc58e93f6" alt="OverClock 설명과 HID 보고율 확인" width="570">
 </p>
 
 <a id="result-cards"></a>
@@ -118,9 +119,9 @@
 스틱의 이미지 저장은 **원형도·드리프트 완료 결과**를 지원합니다. 드리프트 측정이 끝나면 `이미지 저장`이 켜지며, 준비·측정 중에는 꺼집니다. 스냅백 이미지 저장은 아직 지원하지 않습니다.
 
 <p align="center">
-  <img src="docs/images/card-circularity.webp?v=c132dbed9e6f" alt="원형도 결과 카드" width="440">
-  <img src="docs/images/card-drift.webp?v=c132dbed9e6f" alt="드리프트 결과 카드" width="440">
-  <img src="docs/images/card-polling.webp?v=c132dbed9e6f" alt="폴링 결과 카드" width="440">
+  <img src="docs/images/card-circularity.webp?v=080dc58e93f6" alt="원형도 결과 카드" width="440">
+  <img src="docs/images/card-drift.webp?v=080dc58e93f6" alt="드리프트 결과 카드" width="440">
+  <img src="docs/images/card-polling.webp?v=080dc58e93f6" alt="폴링 결과 카드" width="440">
 </p>
 
 <a id="controller-layout"></a>
@@ -129,7 +130,7 @@
 
 - 최대 **4개 패드**를 동시에 연결할 수 있습니다. 장치명·VID:PID·연결 방식이 보이는 탭으로 바꿔 보며, 결과는 패드별로 보존합니다. 패드 탭을 바꾸면 진행 중인 원형도·폴링 측정은 중지합니다. 같은 패드에서 페이지를 이동할 때는 측정이 계속됩니다. 탭의 VID:PID(XXXX:YYYY)를 누르면 복사되어 여러 패드의 ID를 모으기 쉽습니다.
 - 패드가 알려 주는 이름은 'XInput Controller #1'처럼 일반적인 경우가 많습니다. 선택된 탭의 이름을 누르면 **이름을 직접 붙일 수 있고**(Enter로 저장, 비우면 원래 이름), Steam처럼 VID:PID별로 기억해서 다음에 연결해도 그 이름으로 보입니다. 붙인 이름은 결과 카드·내보내기·Gamepadla 자동 매칭에도 쓰입니다.
-- 직접 붙인 이름이 없으면 Gamepadla에서 **Verified**로 확인된 모델명을 탭 이름에 자동으로 씁니다. 장치 화면을 열지 않은 패드에도 적용됩니다.
+- 직접 붙인 이름이 없으면 자동으로 찾거나 사용자가 연결한 **Gamepadla 모델명**을 탭과 장치 정보에 씁니다. Verified·Userfied 등의 지연 검증 등급과 모델 이름 표시는 별개이며, 장치 화면을 열지 않은 패드에도 적용됩니다.
 - 패드 그림은 실제 컨트롤러 정면 사진에서 딴 윤곽과 버튼 위치로 그립니다(좌우 대칭으로 다듬음). XInput 패드는 Xbox Series 컨트롤러, DualSense·DUALSHOCK 4는 DualSense, ProCon 2·Switch Pro 컨트롤러는 ProCon 2 모양으로 그리고, 닌텐도 패드는 A가 오른쪽·B가 아래인 닌텐도식 배치를 따릅니다. Elite 패들, DualSense Edge 후면 버튼, GL/GR도 손잡이 아래에 따로 보여 줍니다.
 - 무선 수신기가 덧붙여 내보내는 가짜 장치(축 없는 HID 인터페이스)는 자동으로 걸러 냅니다.
 
@@ -150,6 +151,10 @@
 Edge는 뒤쪽 L2/R2 스토퍼를 **맨 위(긴 스트로크)**로 두세요. 긴 스트로크여도 사용 중인 프로필의 트리거 효과 강도가 **끔**이면 저항이 나오지 않습니다. 앱이 해당 프로필을 읽어 안내하면 **Fn+△로 기본 프로필을 선택**하거나 PlayStation Accessories에서 트리거 효과 강도를 켠 뒤 다시 시험하세요. 앱은 저장 프로필을 변경하지 않습니다. [Sony 설정 안내](https://controller.dl.playstation.net/controller/lang/en/2100005.html)
 
 실제 패드를 연결하거나 선택하면 장치 화면을 열기 전에 Gamepadla 정보를 미리 불러옵니다. 패드 사진은 더 크게, 원래 비율로 표시합니다. 모델 검색은 여러 후보를 함께 보여 주며, 모델을 기억해 두면 다른 후보를 살펴본 뒤 장치 화면으로 돌아왔을 때 저장한 모델로 복원됩니다.
+
+모델 식별은 특정 패드에 한정하지 않습니다. Windows·HID·SDL의 장치 이름을 먼저 사용하고, Xbox/XInput 공통 이름만 제공하면 공개 장치 목록의 제품명으로 보완해 **Gamepadla 최신 카탈로그**와 매칭합니다. 장치 목록은 백그라운드에서 갱신해 24시간 캐시하고, 오프라인에서는 동봉 자료를 사용합니다. 후보가 비슷하거나 제품명이 충돌하면 자동 확정하지 않습니다. 식별 자료가 없는 패드도 모델 이름으로 검색한 뒤 **이 패드로 기억**을 누르면 다음 실행부터 연결한 모델명과 정보를 표시합니다. Gamepadla에 등록되지 않은 모델의 실측 데이터는 불러올 수 없습니다.
+
+VID:PID는 PC마다 임의로 붙는 번호가 아니라 장치가 제공하는 제조사·제품 식별자입니다. 같은 패드도 유선·수신기·블루투스 또는 제품 변형에 따라 값이 다를 수 있어, 저장한 모델 연결은 해당 VID:PID를 기준으로 복원합니다.
 
 정지 상태에서도 자이로에는 작은 영점 오차와 노이즈가 남을 수 있습니다. 그래프는 최소 ±10°/s 범위로 표시해 미세 노이즈를 큰 움직임처럼 확대하지 않고, 현재 값은 소수 둘째 자리까지 보여 줍니다. 큰 움직임에는 표시 범위가 자동으로 넓어지며, 원래 센서 값은 유지합니다.
 
@@ -197,11 +202,11 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 
 ## 🚀 다운로드 및 실행
 
-1. [Releases](https://github.com/deuxdoom/GamePadTester/releases/latest)에서 최신 버전 ZIP(예: `GamePadTester_v320.zip`)을 받습니다. GamePadTester는 공식 릴리스에서만 배포하니, 다른 곳에 올라온 파일은 받지 마세요.
+1. [Releases](https://github.com/deuxdoom/GamePadTester/releases/latest)에서 최신 버전 ZIP(예: `GamePadTester_v322.zip`)을 받습니다. GamePadTester는 공식 릴리스에서만 배포하니, 다른 곳에 올라온 파일은 받지 마세요.
 2. 원하는 폴더에 압축을 풀고 `GamePadTester.exe`를 실행합니다. 바탕화면이나 문서 폴더처럼 쓰기 권한이 있는 곳을 권장합니다.
 3. 'Windows의 PC 보호' 창이 뜨면 **추가 정보 → 실행**을 누릅니다. 코드 서명을 하지 않은 프로그램이라 처음 한 번 나타날 수 있습니다.
 
-다음 버전부터는 프로그램이 새 버전을 알려 주고, `지금 업데이트`를 누르면 알아서 바꿉니다.
+v3에서는 프로그램이 새 버전을 알려 주고, `지금 업데이트`를 누르면 알아서 바꿉니다. 수동으로 새 버전을 실행할 때는 실행 중인 기존 앱을 먼저 완전히 종료하세요.
 받은 파일이 원본과 같은지는 릴리스 본문의 SHA-256 값으로 확인할 수 있습니다.
 
 > **2.x에서 넘어오는 경우**: v3는 완전히 새로 만든 버전이라 자동 업데이트로 넘어가지 않습니다. 새 폴더에 압축을 풀어 사용하세요.
@@ -226,11 +231,11 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 
 | 스틱 분석 | 폴링레이트 |
 |---|---|
-| <img src="docs/images/sticks.webp?v=c132dbed9e6f" alt="스틱 분석"> | <img src="docs/images/polling.webp?v=c132dbed9e6f" alt="폴링레이트"> |
+| <img src="docs/images/sticks.webp?v=080dc58e93f6" alt="스틱 분석"> | <img src="docs/images/polling.webp?v=080dc58e93f6" alt="폴링레이트"> |
 | **버튼·트리거** | **진동** |
-| <img src="docs/images/buttons.webp?v=c132dbed9e6f" alt="버튼·트리거"> | <img src="docs/images/haptics.webp?v=c132dbed9e6f" alt="진동"> |
+| <img src="docs/images/buttons.webp?v=080dc58e93f6" alt="버튼·트리거"> | <img src="docs/images/haptics.webp?v=080dc58e93f6" alt="진동"> |
 | **모션·터치** | **장치·Gamepadla** |
-| <img src="docs/images/motion.webp?v=c132dbed9e6f" alt="모션·터치"> | <img src="docs/images/device.webp?v=c132dbed9e6f" alt="장치·Gamepadla"> |
+| <img src="docs/images/motion.webp?v=080dc58e93f6" alt="모션·터치"> | <img src="docs/images/device.webp?v=080dc58e93f6" alt="장치·Gamepadla"> |
 
 <a id="support"></a>
 
@@ -260,3 +265,4 @@ APEX 5에는 자이로가 있지만, XInput 연결만으로는 앱에 센서 데
 - [HIDUSBF](https://github.com/LordOfMice/hidusbf): SweetLow / LordOfMice의 서명된 NoPatch 드라이버·INF 원본을 포함합니다. [저작자의 Public Domain 배포 허용 안내](https://github.com/LordOfMice/hidusbf/issues/407), 고정 커밋·해시·출처는 앱 폴더의 `bin/gamepadtester/assets/overclock/SOURCE.json`에 기록했습니다.
 - 앱 아이콘: GamePadTester 자체 디자인 © deuxdoom. 프로그램과 같은 라이선스를 따르며, 메뉴에 쓰는 Fluent 아이콘과 별개입니다.
 - 지연 데이터: [Gamepadla](https://gamepadla.com)(읽기 전용으로 조회하며, 아무것도 올리지 않습니다). 폴링 통계 방식은 [cakama3a/Polling](https://github.com/cakama3a/Polling)을 참고했습니다.
+- 장치 이름 자료: [SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB)(zlib), [Linux xpad 장치 목록](https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c)의 VID:PID·제품명 사실 자료를 참고합니다. 입력 매핑이나 드라이버 코드는 적용하지 않습니다. 동봉 자료의 출처·고지는 `bin/gamepadtester/assets/data/`에 있습니다. 인터넷은 Gamepadla 조회, 공개 장치 목록 갱신, 앱 업데이트에 사용하며 측정 결과를 업로드하지 않습니다.

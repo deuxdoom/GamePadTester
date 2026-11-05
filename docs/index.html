@@ -10,7 +10,7 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="GamePadTester">
   <meta property="og:description" content="스틱 원형도와 폴링레이트를 제대로 재는 Windows 게임패드 테스터">
-  <meta property="og:image" content="https://deuxdoom.github.io/GamePadTester/images/social-preview.png?v=c132dbed9e6f">
+  <meta property="og:image" content="https://deuxdoom.github.io/GamePadTester/images/social-preview.png?v=080dc58e93f6">
   <meta property="og:url" content="https://deuxdoom.github.io/GamePadTester/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="images/icon.png" type="image/png">
@@ -29,9 +29,9 @@
       document.documentElement.setAttribute("data-theme", theme);
     })();
   </script>
-  <script src="i18n.js?v=6e58900a7636" defer></script>
+  <script src="i18n.js?v=64684da097b1" defer></script>
   <script src="pads.js?v=ab005b30f735" defer></script>
-  <script src="site.js?v=ea355025038b" defer></script>
+  <script src="site.js?v=41661fe766e5" defer></script>
 </head>
 <body>
 <!-- ICONS:START -->
@@ -85,13 +85,13 @@
   <section class="hero" id="top">
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <a class="chip" id="release-chip" href="https://github.com/deuxdoom/GamePadTester/releases/latest" title="최신 릴리스 페이지 열기" data-i18n-attr="title:hero.chipTitle"><span class="dot"></span><span data-i18n="hero.chip">Windows · 무료 · 포터블</span> · <span class="version-text">v3.2.0</span></a>
+        <a class="chip" id="release-chip" href="https://github.com/deuxdoom/GamePadTester/releases/latest" title="최신 릴리스 페이지 열기" data-i18n-attr="title:hero.chipTitle"><span class="dot"></span><span data-i18n="hero.chip">Windows · 무료 · 포터블</span> · <span class="version-text">v3.2.2</span></a>
         <h1 data-i18n-html="hero.title">스틱 원형도부터<br>폴링레이트까지<br><em>제대로 재는</em> 패드&nbsp;테스터</h1>
         <p class="lead" data-i18n="hero.lead">C++ 입력 코어가 스틱의 원시 값을 잽니다. 결과는 지정한 폴더에 이미지 한 장으로 저장해 바로 공유하세요.</p>
         <div class="cta">
           <a class="button primary" id="hero-download" href="https://github.com/deuxdoom/GamePadTester/releases/latest">
             <svg class="ic" aria-hidden="true"><use href="#i-arrow_download"></use></svg>
-            <span data-i18n="hero.download">내려받기</span> <span class="version-text">v3.2.0</span>
+            <span data-i18n="hero.download">내려받기</span> <span class="version-text">v3.2.2</span>
           </a>
           <a class="button ghost" href="#try">
             <svg class="ic" aria-hidden="true"><use href="#i-xbox_controller"></use></svg>
@@ -102,10 +102,10 @@
       </div>
       <div class="hero-visual" aria-hidden="true">
         <figure class="window-frame">
-          <img id="hero-shot" data-shot="overview" src="images/overview.webp?v=c132dbed9e6f" alt="" width="1800" height="1083" fetchpriority="high">
+          <img id="hero-shot" data-shot="overview" src="images/overview.webp?v=080dc58e93f6" alt="" width="1800" height="1083" fetchpriority="high">
         </figure>
-        <img class="float-card card-a" data-shot="card-circularity" src="images/card-circularity.webp?v=c132dbed9e6f" alt="" width="800" height="400" loading="lazy">
-        <img class="float-card card-b" data-shot="card-polling" src="images/card-polling.webp?v=c132dbed9e6f" alt="" width="800" height="400" loading="lazy">
+        <img class="float-card card-a" data-shot="card-circularity" src="images/card-circularity.webp?v=080dc58e93f6" alt="" width="800" height="400" loading="lazy">
+        <img class="float-card card-b" data-shot="card-polling" src="images/card-polling.webp?v=080dc58e93f6" alt="" width="800" height="400" loading="lazy">
       </div>
     </div>
     <div class="wrap stats">
@@ -194,7 +194,7 @@
         <article class="feature">
           <svg class="ic" aria-hidden="true"><use href="#i-games"></use></svg>
           <h3 data-i18n="f.multi.title">패드 4개까지</h3>
-          <p data-i18n="f.multi.body">실제 장치명이 보이는 탭으로 바꿔 보고, 패드 이름을 직접 붙일 수 있습니다. 측정은 패드마다 따로 진행합니다.</p>
+          <p data-i18n="f.multi.body">패드별 탭을 바꾸며 연결한 Gamepadla 모델명이나 직접 붙인 이름을 표시합니다. 측정 결과는 패드마다 따로 보존합니다.</p>
         </article>
         <article class="feature">
           <svg class="ic" aria-hidden="true"><use href="#i-xbox_controller"></use></svg>
@@ -204,7 +204,7 @@
         <article class="feature">
           <svg class="ic" aria-hidden="true"><use href="#i-database"></use></svg>
           <h3 data-i18n="f.gpl.title">Gamepadla 비교</h3>
-          <p data-i18n="f.gpl.body">패드의 실측 지연 데이터를 찾아 내 폴링 결과와 비교합니다. 읽기만 하고 아무것도 올리지 않습니다.</p>
+          <p data-i18n="f.gpl.body">장치 이름과 갱신 가능한 제품명 자료로 Gamepadla 최신 목록을 찾아 비교하고, 선택한 모델을 기억합니다. 읽기만 하고 아무것도 올리지 않습니다.</p>
         </article>
         <article class="feature">
           <svg class="ic" aria-hidden="true"><use href="#i-pulse"></use></svg>
@@ -257,55 +257,55 @@
       <div class="gallery-track" id="gallery-track">
         <figure class="gallery-slide" data-shot="overview" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/overview.webp?v=c132dbed9e6f" alt="개요 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/overview.webp?v=080dc58e93f6" alt="개요 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.overview">개요</strong> <span data-i18n="screens.desc.overview">선택한 패드의 모든 입력을 실시간으로 보여 줍니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="sticks" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/sticks.webp?v=c132dbed9e6f" alt="스틱 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/sticks.webp?v=080dc58e93f6" alt="스틱 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.sticks">스틱</strong> <span data-i18n="screens.desc.sticks">두 스틱의 원형도, 중심 드리프트, 해상도, 스냅백을 측정합니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="polling" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/polling.webp?v=c132dbed9e6f" alt="폴링 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/polling.webp?v=080dc58e93f6" alt="폴링 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.polling">폴링</strong> <span data-i18n="screens.desc.polling">패드가 입력을 얼마나 자주 보고하는지 Gamepadla와 같은 기준으로 측정합니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="buttons" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/buttons.webp?v=c132dbed9e6f" alt="버튼 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/buttons.webp?v=080dc58e93f6" alt="버튼 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.buttons">버튼</strong> <span data-i18n="screens.desc.buttons">누름 횟수, 누른 시간, 채터링(한 번 눌렀는데 두 번 입력됨), 트리거 범위를 확인합니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="haptics" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/haptics.webp?v=c132dbed9e6f" alt="진동 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/haptics.webp?v=080dc58e93f6" alt="진동 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.haptics">진동</strong> <span data-i18n="screens.desc.haptics">모터와 트리거의 진동·저항을 테스트합니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="motion" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/motion.webp?v=c132dbed9e6f" alt="모션 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/motion.webp?v=080dc58e93f6" alt="모션 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.motion">모션</strong> <span data-i18n="screens.desc.motion">자이로, 가속도, 기울기 자세, 터치패드를 확인합니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="extras" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/extras.webp?v=c132dbed9e6f" alt="기타 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/extras.webp?v=080dc58e93f6" alt="기타 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.extras">기타</strong> <span data-i18n="screens.desc.extras">DualSense 라이트바의 색을 바꿉니다. DUALSHOCK 4 등 RGB 조명이 있는 다른 패드에도 적용됩니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="device" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/device.webp?v=c132dbed9e6f" alt="장치 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/device.webp?v=080dc58e93f6" alt="장치 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.device">장치</strong> <span data-i18n="screens.desc.device">하드웨어 정보와 Gamepadla에 공개된 실측 지연 데이터를 보여 줍니다.</span></figcaption>
         </figure>
         <figure class="gallery-slide" data-shot="settings" aria-roledescription="slide">
           <button class="gallery-view" type="button" aria-label="크게 보기" data-i18n-attr="aria-label:screens.zoom">
-            <img src="images/settings.webp?v=c132dbed9e6f" alt="설정 화면" width="1800" height="1083" loading="lazy" decoding="async">
+            <img src="images/settings.webp?v=080dc58e93f6" alt="설정 화면" width="1800" height="1083" loading="lazy" decoding="async">
           </button>
           <figcaption><strong data-i18n="screens.settings">설정</strong> <span data-i18n="screens.desc.settings">언어, 테마, 입력 수집 주기, 업데이트를 설정합니다.</span></figcaption>
         </figure>
@@ -337,7 +337,7 @@
         </ol>
         <div class="update-stage">
           <div class="update-preview" id="update-preview">
-            <img id="update-shot" src="images/update-notice.webp?v=c132dbed9e6f" width="1020" height="953" loading="lazy" alt="업데이트 창 — 릴리스 내역과 작업 단계">
+            <img id="update-shot" src="images/update-notice.webp?v=080dc58e93f6" width="1020" height="953" loading="lazy" alt="업데이트 창 — 릴리스 내역과 작업 단계">
           </div>
           <p class="fine center" data-i18n="update.example">실제 독립 업데이트 창의 캡처입니다. 버전과 릴리스 내역은 예시입니다.</p>
         </div>
@@ -368,10 +368,11 @@
       <div class="faq">
         <details><summary data-i18n="faq.q1">'Windows의 PC 보호' 창이 떠요.</summary><p data-i18n="faq.a1">코드 서명을 하지 않은 프로그램이라 처음 한 번 나타날 수 있습니다. 추가 정보를 누른 뒤 실행을 누르세요.</p></details>
         <details><summary data-i18n="faq.q2">어떤 패드를 쓸 수 있나요?</summary><p data-i18n="faq.a2">XInput 패드(Xbox와 호환 패드), DualSense·DUALSHOCK 4, Switch Pro·ProCon 2 컨트롤러 등 SDL 3이 지원하는 패드를 모두 인식합니다. ProCon 2는 USB 케이블로 연결하면 앱이 PC 모드로 자동 전환합니다(블루투스 미지원).</p></details>
-        <details><summary data-i18n="faq.q3">측정 결과가 어딘가로 전송되나요?</summary><p data-i18n="faq.a3">아니요. 결과는 내 PC에만 저장됩니다. 인터넷은 Gamepadla 조회와 업데이트 확인에만 씁니다.</p></details>
-        <details><summary data-i18n="faq.q4">2.x에서 자동으로 업데이트되나요?</summary><p data-i18n="faq.a4">v3는 새로 만든 버전이라 자동으로 넘어가지 않습니다. ZIP을 새 폴더에 풀어서 쓰세요. 다음 버전부터는 자동 업데이트가 됩니다.</p></details>
+        <details><summary data-i18n="faq.q3">측정 결과가 어딘가로 전송되나요?</summary><p data-i18n="faq.a3">아니요. 측정 결과는 내 PC에 저장됩니다. 인터넷은 Gamepadla 조회, 공개 장치 이름 자료 갱신, 앱 업데이트 확인에 사용합니다.</p></details>
+        <details><summary data-i18n="faq.q4">2.x에서 자동으로 업데이트되나요?</summary><p data-i18n="faq.a4">v3는 새로 만든 앱이라 2.x에서 자동으로 넘어가지 않습니다. ZIP을 새 폴더에 풀어서 쓰세요. v3 버전끼리는 자동 업데이트를 지원합니다.</p></details>
         <details><summary data-i18n="faq.q5">웹 체험판과 앱은 무엇이 다른가요?</summary><p data-i18n="faq.a5">브라우저는 화면 주사율만큼만 패드를 읽어서 폴링레이트를 잴 수 없습니다. 앱은 C++ 엔진이 보고서를 직접 읽고, 진동·자이로·Gamepadla 비교 같은 기능도 씁니다.</p></details>
         <details><summary data-i18n="faq.q6">설정은 어디에 저장되나요?</summary><p data-i18n="faq.a6">프로그램 폴더의 settings.json에 저장됩니다. 폴더째로 옮겨도 설정이 따라갑니다.</p></details>
+        <details><summary data-i18n="faq.q7">패드 모델명이 나오지 않으면 어떻게 하나요?</summary><p data-i18n="faq.a7">공통 이름만 제공하거나 제품명 자료가 충돌하면 자동 식별을 보류합니다. Gamepadla에서 모델을 검색한 뒤 이 패드로 기억을 누르면 다음 실행에도 복원합니다. Gamepadla에 등록되지 않은 모델의 실측 데이터는 불러올 수 없습니다.</p></details>
       </div>
     </div>
   </section>
@@ -381,7 +382,7 @@
       <div class="download panel">
         <img src="images/icon.png" alt="" width="72" height="72">
         <h2 data-i18n="dl.title">GamePadTester 내려받기</h2>
-        <p class="dl-meta"><span class="version-text">v3.2.0</span><span id="dl-date"></span><span id="dl-size"></span></p>
+        <p class="dl-meta"><span class="version-text">v3.2.2</span><span id="dl-date"></span><span id="dl-size"></span></p>
         <a class="button primary large" id="dl-link" href="https://github.com/deuxdoom/GamePadTester/releases/latest">
           <svg class="ic" aria-hidden="true"><use href="#i-arrow_download"></use></svg>
           <span data-i18n="dl.button">최신 버전 내려받기</span>
@@ -403,13 +404,13 @@
 <footer class="footer">
   <div class="wrap footer-inner">
     <p>© 2025-2026 deuxdoom · All rights reserved · <a href="https://github.com/deuxdoom/GamePadTester/blob/main/LICENSE">Freeware License</a></p>
-    <p class="fine" data-i18n-html="footer.credits">SDL 3(zlib) · Qt for Python(LGPL v3) · Pretendard JP(OFL, 이 사이트에서는 일부 글자만 담아 이름을 바꿔 씀) · JetBrains Mono(OFL) · Fluent UI System Icons(MIT) · GitHub 마크: Octicons(MIT) · 앱 아이콘: deuxdoom · 지연 데이터: <a href="https://gamepadla.com">Gamepadla</a></p>
+    <p class="fine" data-i18n-html="footer.credits">SDL 3(zlib) · Qt for Python(LGPL v3) · Pretendard JP(OFL, 이 사이트에서는 일부 글자만 담아 이름을 바꿔 씀) · JetBrains Mono(OFL) · Fluent UI System Icons(MIT) · GitHub 마크: Octicons(MIT) · 앱 아이콘: deuxdoom · 지연 데이터: <a href="https://gamepadla.com">Gamepadla</a> · 장치 이름: <a href="https://github.com/mdqinc/SDL_GameControllerDB">SDL_GameControllerDB</a> · <a href="https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c">Linux xpad</a></p>
   </div>
 </footer>
 
 <dialog class="lightbox" id="lightbox">
   <form method="dialog"><button class="icon-button close" aria-label="닫기" data-i18n-attr="aria-label:common.close"><svg class="ic" aria-hidden="true"><use href="#i-dismiss"></use></svg></button></form>
-  <img id="lightbox-image" src="images/overview.webp?v=c132dbed9e6f" alt="" width="1800" height="1083">
+  <img id="lightbox-image" src="images/overview.webp?v=080dc58e93f6" alt="" width="1800" height="1083">
 </dialog>
 </body>
 </html>
