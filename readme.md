@@ -221,8 +221,6 @@ v3에서는 프로그램이 새 버전을 알려 주고, `지금 업데이트`�
 
 ---
 
-<a id="licenses"></a>
-
 <a id="screenshots"></a>
 
 <a id="-화면"></a>
@@ -246,6 +244,8 @@ v3에서는 프로그램이 새 버전을 알려 주고, `지금 업데이트`�
 
 <a id="license"></a>
 
+<a id="licenses"></a>
+
 <a id="-출처와-라이선스"></a>
 
 ## 📜 라이선스 및 저작권
@@ -256,9 +256,14 @@ v3에서는 프로그램이 새 버전을 알려 주고, `지금 업데이트`�
 | --- | --- |
 | 배포 형태 | 프리웨어 (개인·업무 용도 무료) |
 | 소스 코드 | 비공개 |
-- 프로그램: [GamePadTester 프리웨어 라이선스](LICENSE) © deuxdoom. 누구나 무료로 사용할 수 있지만, 수정·역설계·재배포는 허용하지 않습니다. 3.2.0 이하 버전은 배포 당시 함께 제공한 라이선스를 따릅니다.
 
-### 제3자 구성 요소 및 출처
+- **허용:** 공식 배포처에서 받은 프로그램을 개인·업무 목적으로 무료로 설치하고 사용할 수 있습니다. 공식 배포처와 소개 페이지 링크는 자유롭게 공유할 수 있습니다.
+- **금지:** 저작권자의 사전 서면 허락 없이 수정·번역·개작하거나, 법률이 허용하는 범위를 제외하고 역설계하거나, 재배포·판매·대여할 수 없습니다.
+- **전문:** [GamePadTester 프리웨어 라이선스](LICENSE). 3.2.0 이하 버전은 배포 당시 함께 제공한 라이선스를 따릅니다.
+
+### 제3자 구성 요소
+
+함께 배포하는 제3자 구성 요소는 각자의 라이선스를 따르며, 위 조건은 그 라이선스가 부여하는 권리를 제한하지 않습니다.
 
 - [SDL 3](https://libsdl.org)(zlib), [Qt for Python](https://www.qt.io/qt-for-python)(LGPL v3), [Pretendard](https://github.com/orioncactus/pretendard)·[JetBrains Mono](https://github.com/JetBrains/JetBrainsMono)(SIL OFL 1.1), [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons)(MIT), [GitHub Octicons](https://github.com/primer/octicons)(MIT). 라이선스 원문은 각 링크에서 볼 수 있습니다.
 - SDL 3.4.16은 ProCon 2의 USB 초기화를 위해 libusb를 켜고 소스에서 직접 빌드했습니다. [libusb](https://github.com/libusb/libusb)(LGPL 2.1) 1.0.30 공식 DLL을 수정 없이 포함하며, 라이선스 원문은 앱 폴더의 `bin/gamepadtester/assets/libusb/`에 있습니다. LGPL 구성 요소(Qt for Python, libusb)는 해당 라이선스에 따라 교체·수정할 수 있습니다.
@@ -266,3 +271,7 @@ v3에서는 프로그램이 새 버전을 알려 주고, `지금 업데이트`�
 - 앱 아이콘: GamePadTester 자체 디자인 © deuxdoom. 프로그램과 같은 라이선스를 따르며, 메뉴에 쓰는 Fluent 아이콘과 별개입니다.
 - 지연 데이터: [Gamepadla](https://gamepadla.com)(읽기 전용으로 조회하며, 아무것도 올리지 않습니다). 폴링 통계 방식은 [cakama3a/Polling](https://github.com/cakama3a/Polling)을 참고했습니다.
 - 장치 이름 자료: [SDL_GameControllerDB](https://github.com/mdqinc/SDL_GameControllerDB)(zlib), [Linux xpad 장치 목록](https://github.com/torvalds/linux/blob/master/drivers/input/joystick/xpad.c)의 VID:PID·제품명 사실 자료를 참고합니다. 입력 매핑이나 드라이버 코드는 적용하지 않습니다. 동봉 자료의 출처·고지는 `bin/gamepadtester/assets/data/`에 있습니다. 인터넷은 Gamepadla 조회, 공개 장치 목록 갱신, 앱 업데이트에 사용하며 측정 결과를 업로드하지 않습니다.
+
+### 상표
+
+Xbox, DualSense, Nintendo Switch, Flydigi는 각 소유자의 상표입니다. GamePadTester는 독립적으로 만든 비공식 프로그램이며, 해당 기업과 제휴하거나 승인을 받지 않았습니다.
